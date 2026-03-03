@@ -519,11 +519,21 @@ public class StealthLocationEngine {
             return;
 
         try {
-            // Re-enable location provider via Settings
-            android.provider.Settings.Secure.putInt(
-                    mContext.getContentResolver(),
-                    android.provider.Settings.Secure.LOCATION_MODE,
-                    android.provider.Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
+            // Modern AOSP Location Enablement (API 28+)
+            // Requires LocationManager System API or reflection in non-AOSP builds
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                // In a pure AOSP build with hidden APIs exposed, we can call this directly.
+                // Using reflection here for compatibility across generic SDKs
+                java.lang.reflect.Method method = mLocationManager.getClass().getMethod(
+                        "setLocationEnabledForUser", boolean.class, android.os.UserHandle.class);
+                method.invoke(mLocationManager, true, android.os.Process.myUserHandle());
+            } else {
+                // Legacy fallback (< API 28)
+                android.provider.Settings.Secure.putInt(
+                        mContext.getContentResolver(),
+                        android.provider.Settings.Secure.LOCATION_MODE,
+                        android.provider.Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
+            }
             Log.w(TAG, "Re-enabled location provider: " + provider);
         } catch (Exception e) {
             Log.e(TAG, "Cannot re-enable provider: " + e.getMessage());
