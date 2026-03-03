@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard AI | India's Cybersecurity Shield</title>
+    <!-- React & Tailwind -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion@10.15.0/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide-react"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Outfit', sans-serif;
+            cursor: none !important;
+        }
+
+        body {
+            background: #050505;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .slide-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .slide-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-panel {
+            background: rgba(25, 25, 25, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .custom-cursor {
+            width: 40px;
+            height: 40px;
+            background: white;
+            mix-blend-mode: difference;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .india-grad {
+            background: linear-gradient(90deg, #FF671F 0%, #FFFFFF 50%, #046A38 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .shimmer-bg {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <div class="custom-cursor" id="cursor"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = FramerMotion;
+
+        const slides = [
+            {
+                title: "PhishGuard AI",
+                subtitle: "The All-in-One Cybersecurity Shield for 1.4 Billion Indians",
+                icon: <lucide.ShieldAlert size={80} className="text-red-500" />,
+                content: [
+                    "Empowering Bharat with AI-driven protection",
+                    "Hyper-localized security for local threats",
+                    "Integrated with national emergency services",
+                ],
+                tag: "INDIA'S CYBER GUARDIAN",
+                bgColor: "from-red-900/20 to-black"
+            },
+            {
+                title: "The Crisis in Digtal Bharat",
+                subtitle: "100+ Crore UPI transactions monthly / 50% increase in scams",
+                icon: <lucide.Zap size={80} className="text-amber-500" />,
+                content: [
+                    "UPI Fraud & SIM Swap are draining life savings",
+                    "Deepfake images targeting dignity and trust",
+                    "SMS phishing is the entry point for exploit",
+                ],
+                tag: "THE PROBLEM",
+                bgColor: "from-amber-900/20 to-black"
+            },
+            {
+                title: "Phishing & Scam Detection",
+                subtitle: "Real-time AI Guard for SMS and Web",
+                icon: <lucide.Lock size={80} className="text-blue-500" />,
+                content: [
+                    "Scans incoming SMS for malicious UPI/Bank links",
+                    "ML model predicts 'High Risk' URLs with 98% accuracy",
+                    "Explainable AI: Tells the user WHY it is a scam",
+                ],
+                tag: "CORE FEATURE 01",
+                bgColor: "from-blue-900/20 to-black"
+            },
+            {
+                title: "Stolen Phone? Auto-FIR",
+                subtitle: "Securing your hardware and data instantly",
+                icon: <lucide.Smartphone size={80} className="text-emerald-500" />,
+                content: [
+                    "Remote lock and location tracking via secondary device",
+                    "One-Tap Auto-FIR filing to nearby police stations",
+                    "Intruder Selfie: Capturing the thief silently",
+                ],
+                tag: "CORE FEATURE 02",
+                bgColor: "from-emerald-900/20 to-black"
+            },
+            {
+                title: "Women & Child Safety",
+                subtitle: "Protecting Digital Dignity with Image AI",
+                icon: <lucide.UserCheck size={80} className="text-rose-500" />,
+                content: [
+                    "Deepfake detection for morphed social media images",
+                    "SOS integration with real-time location sharing",
+                    "Family Circle: Real-time safe zone monitoring",
+                ],
+                tag: "CORE FEATURE 03",
+                bgColor: "from-rose-900/20 to-black"
+            },
+            {
+                title: "Financial Protection Hub",
+                subtitle: "Guardian for UPI, SIM and Bank Accounts",
+                icon: <lucide.CreditCard size={80} className="text-indigo-500" />,
+                content: [
+                    "SIM Swap blocker: Preventing OTP interception",
+                    "UPI Payment Guard: Scans receivers for fraud history",
+                    "Instant 'Kill Switch' for all bank cards and UPI IDs",
+                ],
+                tag: "CORE FEATURE 04",
+                bgColor: "from-indigo-900/20 to-black"
+            },
+            {
+                title: "Hyper-Localized Support",
+                subtitle: "Security that speaks your language",
+                icon: <lucide.Globe size={80} className="text-teal-500" />,
+                content: [
+                    "Available in Hindi, Bangla, Tamil, and 12+ languages",
+                    "Voice-assisted security for elderly citizens",
+                    "Local threat intelligence: Awareness of regional scams",
+                ],
+                tag: "THE DIFFERENTIATOR",
+                bgColor: "from-teal-900/20 to-black"
+            },
+            {
+                title: "Business Model: PhishGuard Pro",
+                subtitle: "Protecting citizens, empowering institutions",
+                icon: <lucide.TrendingUp size={80} className="text-purple-500" />,
+                content: [
+                    "B2C: Affordable monthly security subscription",
+                    "B2B: API integration for Banks & E-commerce",
+                    "Govt: National digital literacy partnerships",
+                ],
+                tag: "THE REVENUE",
+                bgColor: "from-purple-900/20 to-black"
+            },
+            {
+                title: "Roadmap to 2027",
+                subtitle: "From MVP to National Infrastructure",
+                icon: <lucide.Activity size={80} className="text-orange-500" />,
+                content: [
+                    "Q3 2026: PAN-India release on Play Store/iOS",
+                    "Q1 2027: Integration with 50+ Public Sector Banks",
+                    "Q4 2027: AI-powered decentralized Scam Database",
+                ],
+                tag: "THE VISION",
+                bgColor: "from-orange-900/20 to-black"
+            },
+            {
+                title: "Let's Secure India",
+                subtitle: "Join PhishGuard AI in the Hackathon Revolution",
+                icon: <lucide.CheckCircle size={80} className="text-white" />,
+                content: [
+                    "Scalable, Urgent, and Absolutely Essential",
+                    "Building the trust layer for Digital India",
+                    "Vasant S | Lead Architect & Security Expert",
+                ],
+                tag: "THE CONCLUSION",
+                bgColor: "from-gray-900/20 to-black"
+            }
+        ];
+
+        function App() {
+            const [current, setCurrent] = useState(0);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === "ArrowRight" || e.key === " ") setCurrent(c => Math.min(c + 1, slides.length - 1));
+                    if (e.key === "ArrowLeft") setCurrent(c => Math.max(c - 1, 0));
+                };
+                window.addEventListener("keydown", handleKeyDown);
+                return () => window.removeEventListener("keydown", handleKeyDown);
+            }, []);
+
+            useEffect(() => {
+                const cursor = document.getElementById('cursor');
+                const moveCursor = (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                };
+                window.addEventListener('mousemove', moveCursor);
+                return () => window.removeEventListener('mousemove', moveCursor);
+            }, []);
+
+            return (
+                <div className={`h-screen w-full bg-gradient-to-br ${slides[current].bgColor} transition-all duration-1000 flex items-center justify-center p-8`}>
+                    <div className="absolute top-8 left-8 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center font-bold text-xl">P</div>
+                        <span className="text-xl font-bold tracking-wider">PHISHGUARD AI</span>
+                    </div>
+
+                    <div className="absolute top-8 right-8 flex gap-2">
+                        {slides.map((_, i) => (
+                            <div
+                                key={i}
+                                className={`h-1 rounded-full bg-white transition-all duration-300 ${i === current ? 'w-8 opacity-100' : 'w-2 opacity-20'}`}
+                            />
+                        ))}
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={current}
+                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -50, scale: 0.95 }}
+                            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                            className="w-full max-w-6xl flex gap-12 items-center"
+                        >
+                            <div className="flex-1 space-y-8">
+                                <div className="space-y-2">
+                                    <span className="text-red-500 font-bold tracking-[0.3em] text-sm uppercase">{slides[current].tag}</span>
+                                    <h1 className="text-7xl font-bold leading-tight">
+                                        {slides[current].title}
+                                    </h1>
+                                    <p className="text-2xl text-white/60 font-medium">{slides[current].subtitle}</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {slides[current].content.map((text, i) => (
+                                        <div key={i} className="flex items-center gap-4 text-xl text-white/80">
+                                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                                            {text}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="w-[450px] h-[450px] glass-panel flex items-center justify-center relative group">
+                                <div className="absolute inset-0 bg-red-500/10 rounded-[24px] opacity-0 group-hover:opacity-100 transition-opacity blur-2xl" />
+                                {slides[current].icon}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-12 text-white/40 font-medium tracking-[0.2em] text-xs uppercase">
+                        <div>[ Space / Next ]</div>
+                        <div className="india-grad font-bold">Safe Digital Bharat</div>
+                        <div>[ Prev ]</div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

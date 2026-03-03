@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard AI — India's Cybersecurity Shield</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <!-- SIDEBAR NAV -->
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">P</div>
+            <div class="brand-text">
+                <div class="brand-name">PhishGuard AI</div>
+                <div class="brand-sub">Hackathon 2026</div>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="nav-item" data-page="phishing" onclick="showPage('phishing')">
+                <span class="nav-icon">🛡️</span> Phishing Detector
+            </a>
+            <a class="nav-item" data-page="tracking" onclick="showPage('tracking')">
+                <span class="nav-icon">📍</span> Stolen Phone & FIR
+            </a>
+            <a class="nav-item" data-page="deepfake" onclick="showPage('deepfake')">
+                <span class="nav-icon">🔍</span> Deepfake Guard
+            </a>
+            <a class="nav-item" data-page="finance" onclick="showPage('finance')">
+                <span class="nav-icon">💳</span> Financial Fraud
+            </a>
+            <a class="nav-item" data-page="sos" onclick="showPage('sos')">
+                <span class="nav-icon">🚨</span> SOS & Safety
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div class="status-dot"></div>
+            <span>Shield Active</span>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                <div id="page-title" class="page-title">Dashboard</div>
+            </div>
+            <div class="topbar-right">
+                <div class="threat-level" id="threat-level">
+                    <span class="pulse"></span> Scanning...
+                </div>
+                <div class="topbar-time" id="time-display"></div>
+            </div>
+        </header>
+
+        <!-- PAGES -->
+        <div class="page-container">
+
+            <!-- DASHBOARD -->
+            <section id="page-dashboard" class="page active">
+                <div class="hero-banner">
+                    <div class="hero-text">
+                        <h1>Welcome to <span class="accent">PhishGuard AI</span></h1>
+                        <p>India's all-in-one cybersecurity shield — protecting you from phishing, theft, deepfakes &
+                            financial fraud.</p>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="stat-num accent" id="scan-count">0</div>
+                            <div class="stat-label">Scans Today</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="stat-num red" id="blocked-count">0</div>
+                            <div class="stat-label">Threats Blocked</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="stat-num green">98%</div>
+                            <div class="stat-label">Accuracy Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="feature-card" onclick="showPage('phishing')">
+                        <div class="feature-icon" style="background:rgba(96,165,250,.15)">🛡️</div>
+                        <div class="feature-info">
+                            <h3>Phishing & Scam Detector</h3>
+                            <p>Analyze SMS, URLs & emails for phishing patterns using AI + heuristic rules</p>
+                            <span class="btn-link">Analyze Now →</span>
+                        </div>
+                    </div>
+                    <div class="feature-card" onclick="showPage('tracking')">
+                        <div class="feature-icon" style="background:rgba(52,211,153,.15)">📍</div>
+                        <div class="feature-info">
+                            <h3>Stolen Phone & Auto-FIR</h3>
+                            <p>Real-time GPS tracker with live map and one-click FIR PDF generation</p>
+                            <span class="btn-link">Track Now →</span>
+                        </div>
+                    </div>
+                    <div class="feature-card" onclick="showPage('deepfake')">
+                        <div class="feature-icon" style="background:rgba(251,113,133,.15)">🔍</div>
+                        <div class="feature-info">
+                            <h3>Deepfake & Image Guard</h3>
+                            <p>Upload images to detect AI manipulation, deepfakes & morphed content</p>
+                            <span class="btn-link">Scan Image →</span>
+                        </div>
+                    </div>
+                    <div class="feature-card" onclick="showPage('finance')">
+                        <div class="feature-icon" style="background:rgba(167,139,250,.15)">💳</div>
+                        <div class="feature-info">
+                            <h3>Financial Fraud Protection</h3>
+                            <p>Analyze UPI SMS & transactions to detect fraud, SIM swap & scam requests</p>
+                            <span class="btn-link">Protect Now →</span>
+                        </div>
+                    </div>
+                    <div class="feature-card" onclick="showPage('sos')">
+                        <div class="feature-icon" style="background:rgba(239,68,68,.15)">🚨</div>
+                        <div class="feature-info">
+                            <h3>SOS & Women's Safety</h3>
+                            <p>Emergency SOS broadcasts location to trusted contacts with one press</p>
+                            <span class="btn-link">Configure SOS →</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <h3>📊 National Cyber Stats</h3>
+                        <div class="stat-row"><span>UPI Fraud Cases (2023)</span><span class="red">95,000+</span></div>
+                        <div class="stat-row"><span>Total Cybercrime Loss</span><span class="red">₹10,319 Cr</span>
+                        </div>
+                        <div class="stat-row"><span>Deepfake Complaints</span><span class="red">↑ 400%</span></div>
+                        <div class="stat-row"><span>CERT-In Incidents</span><span class="red">14.02 Lakh</span></div>
+                    </div>
+                </div>
+
+                <div class="recent-log" id="recent-log">
+                    <h3>🔐 Recent Activity</h3>
+                    <div class="log-empty">No scans yet. Use the tools above to get started.</div>
+                </div>
+            </section>
+
+            <!-- PHISHING DETECTOR -->
+            <section id="page-phishing" class="page">
+                <div class="section-header">
+                    <h2>🛡️ Phishing & Scam Detector</h2>
+                    <p>Paste any SMS, URL, email or message to analyze for phishing patterns</p>
+                </div>
+                <div class="tool-layout">
+                    <div class="tool-input-panel">
+                        <div class="input-group">
+                            <label>Message / URL / Email Content</label>
+                            <textarea id="phishing-input" rows="8"
+                                placeholder="Paste text here...&#10;&#10;Examples:&#10;• Dear customer, your SBI account is blocked. Verify now: bit.ly/3scam&#10;• You won Rs 50,000! Claim at sbi-reward.xyz&#10;• URGENT: KYC update required immediately"></textarea>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn-primary" onclick="analyzePhishing()">🔍 Analyze</button>
+                            <button class="btn-secondary" onclick="loadPhishingSample('high')">Load High-Risk
+                                Sample</button>
+                            <button class="btn-secondary" onclick="loadPhishingSample('low')">Load Safe Sample</button>
+                        </div>
+                        <div class="language-toggle">
+                            <label><input type="checkbox" id="hindi-toggle"> Show result in Hindi</label>
+                        </div>
+                    </div>
+                    <div class="tool-result-panel" id="phishing-result">
+                        <div class="result-empty">
+                            <div class="empty-icon">🛡️</div>
+                            <p>Enter content and click Analyze</p>
+                            <p class="hint">Supports: SMS • URLs • Email • WhatsApp messages</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pattern-info">
+                    <h3>📋 Detection Capabilities</h3>
+                    <div class="tag-list">
+                        <span class="tag">Urgency Keywords</span><span class="tag">Shortened URLs</span>
+                        <span class="tag">Bank Name Spoofing</span><span class="tag">OTP Requests</span>
+                        <span class="tag">KYC Phishing</span><span class="tag">UPI Collect Fraud</span>
+                        <span class="tag">High-Value Amounts</span><span class="tag">Suspicious Links</span>
+                        <span class="tag">Hindi Bilingual</span><span class="tag">SIM Swap Patterns</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STOLEN PHONE TRACKER -->
+            <section id="page-tracking" class="page">
+                <div class="section-header">
+                    <h2>📍 Stolen Phone Tracker & Auto-FIR</h2>
+                    <p>Track your device's last location and generate an official FIR PDF</p>
+                </div>
+                <div class="tracking-layout">
+                    <div class="tracking-controls">
+                        <div class="device-status-card" id="device-status-card">
+                            <div class="device-icon">📱</div>
+                            <div>
+                                <div class="device-label">Device Status</div>
+                                <div class="device-value" id="device-status-text">Secure</div>
+                            </div>
+                            <div class="status-badge safe" id="status-badge">SAFE</div>
+                        </div>
+
+                        <div class="coords-card">
+                            <div class="coord-row">
+                                <span>📍 Latitude</span>
+                                <span id="lat-display" class="coord-val">12.971600</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>📍 Longitude</span>
+                                <span id="lng-display" class="coord-val">77.594600</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>⏱ Last Update</span>
+                                <span id="last-update" class="coord-val">—</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>🔋 Battery</span>
+                                <span id="battery-display" class="coord-val">67%</span>
+                            </div>
+                        </div>
+
+                        <div class="btn-stack">
+                            <button class="btn-danger" id="stolen-btn" onclick="reportStolen()">🚨 Mark as Stolen &
+                                Track</button>
+                            <button class="btn-primary" onclick="generateFIR()">📄 Generate FIR PDF</button>
+                            <button class="btn-secondary" onclick="stopTracking()">⏹ Stop Tracking</button>
+                        </div>
+
+                        <div class="fir-form" id="fir-form" style="display:none">
+                            <h4>FIR Details</h4>
+                            <input type="text" id="fir-name" placeholder="Your Full Name" class="input-field">
+                            <input type="text" id="fir-phone" placeholder="Your Phone Number" class="input-field">
+                            <input type="text" id="fir-imei" placeholder="Device IMEI (optional)" class="input-field">
+                            <button class="btn-primary" onclick="downloadFIR()">⬇️ Download FIR PDF</button>
+                        </div>
+                    </div>
+                    <div id="map" class="map-container"></div>
+                </div>
+            </section>
+
+            <!-- DEEPFAKE GUARD -->
+            <section id="page-deepfake" class="page">
+                <div class="section-header">
+                    <h2>🔍 Deepfake & Image Abuse Guard</h2>
+                    <p>Upload an image to check for AI manipulation, morphing or deepfake generation</p>
+                </div>
+                <div class="tool-layout">
+                    <div class="tool-input-panel">
+                        <div class="upload-zone" id="upload-zone"
+                            onclick="document.getElementById('image-input').click()">
+                            <div class="upload-icon">🖼️</div>
+                            <p>Click to upload or drag & drop an image</p>
+                            <p class="hint">Supports: JPG, PNG, WEBP — Max 10MB</p>
+                            <input type="file" id="image-input" accept="image/*" style="display:none"
+                                onchange="handleImageUpload(event)">
+                        </div>
+                        <div id="image-preview-wrap" style="display:none">
+                            <img id="image-preview" class="image-preview" alt="Preview">
+                            <div class="btn-row">
+                                <button class="btn-primary" onclick="analyzeImage()">🔍 Scan for Deepfake</button>
+                                <button class="btn-secondary" onclick="clearImage()">✕ Clear</button>
+                            </div>
+                        </div>
+                        <div class="deepfake-info-cards">
+                            <div class="mini-card">
+                                <div class="mini-icon">🎭</div>
+                                <div><strong>Deepfake Detection</strong><br><small>Face swap & AI generation</small>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-icon">📸</div>
+                                <div><strong>Morphing Detection</strong><br><small>Photo manipulation & editing</small>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-icon">🚫</div>
+                                <div><strong>NSFW Guard</strong><br><small>Inappropriate content alerts</small></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tool-result-panel" id="deepfake-result">
+                        <div class="result-empty">
+                            <div class="empty-icon">🔍</div>
+                            <p>Upload an image to begin analysis</p>
+                            <p class="hint">94% detection accuracy on known deepfake datasets</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FINANCIAL FRAUD -->
+            <section id="page-finance" class="page">
+                <div class="section-header">
+                    <h2>💳 Financial Fraud & UPI Protection</h2>
+                    <p>Analyze UPI transaction messages, bank SMS and payment requests for fraud</p>
+                </div>
+                <div class="tool-layout">
+                    <div class="tool-input-panel">
+                        <div class="input-group">
+                            <label>UPI / Bank SMS / Transaction Message</label>
+                            <textarea id="finance-input" rows="7"
+                                placeholder="Paste your UPI or bank SMS here...&#10;&#10;Examples:&#10;• Rs 45000 debited from your account to unknown@ybl&#10;• Collect request of Rs 12000 from +91XXXXXXX&#10;• URGENT: Your UPI is blocked. Click: upi-verify.xyz"></textarea>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn-primary" onclick="analyzeFinance()">🔍 Analyze Transaction</button>
+                            <button class="btn-secondary" onclick="loadFinanceSample('fraud')">Load Fraud
+                                Sample</button>
+                            <button class="btn-secondary" onclick="loadFinanceSample('legit')">Load Legit
+                                Sample</button>
+                        </div>
+                        <div class="upi-checker">
+                            <label>Quick UPI ID Check</label>
+                            <div class="upi-input-row">
+                                <input type="text" id="upi-id" placeholder="Enter UPI ID (e.g. scammer@ybl)"
+                                    class="input-field">
+                                <button class="btn-primary" onclick="checkUPI()">Check</button>
+                            </div>
+                            <div id="upi-result" class="upi-result-area"></div>
+                        </div>
+                    </div>
+                    <div class="tool-result-panel" id="finance-result">
+                        <div class="result-empty">
+                            <div class="empty-icon">💳</div>
+                            <p>Enter a transaction message and click Analyze</p>
+                            <p class="hint">Detects: UPI fraud • SIM Swap • Collect Scams • Fake refunds</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="kill-switch-section">
+                    <div class="kill-switch-card">
+                        <div>
+                            <h3>⚡ Kill Switch</h3>
+                            <p>Freeze all linked UPI IDs and bank accounts instantly</p>
+                        </div>
+                        <button class="btn-kill" id="kill-btn" onclick="activateKillSwitch()">ACTIVATE KILL
+                            SWITCH</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SOS & SAFETY -->
+            <section id="page-sos" class="page">
+                <div class="section-header">
+                    <h2>🚨 SOS & Women's Safety</h2>
+                    <p>Emergency alert system with live location sharing to trusted contacts</p>
+                </div>
+                <div class="sos-layout">
+                    <div class="sos-main">
+                        <div class="sos-button-wrap">
+                            <button class="sos-btn" id="sos-btn" onclick="triggerSOS()">
+                                <span class="sos-label">SOS</span>
+                                <span class="sos-sub">Hold 3 sec or Click</span>
+                            </button>
+                        </div>
+                        <div class="sos-status" id="sos-status">Press SOS button in emergency</div>
+                    </div>
+                    <div class="sos-sidebar">
+                        <div class="contacts-panel">
+                            <h3>👥 Emergency Contacts</h3>
+                            <div class="contact-list" id="contact-list"></div>
+                            <div class="add-contact-form">
+                                <input type="text" id="contact-name" placeholder="Contact Name" class="input-field">
+                                <input type="text" id="contact-phone" placeholder="Phone Number" class="input-field">
+                                <button class="btn-primary" onclick="addContact()">+ Add Contact</button>
+                            </div>
+                        </div>
+                        <div class="helplines-panel">
+                            <h3>📞 National Helplines</h3>
+                            <div class="helpline-list">
+                                <div class="helpline-item"><span>🚔 Police</span><strong>100</strong></div>
+                                <div class="helpline-item"><span>🚑 Ambulance</span><strong>102</strong></div>
+                                <div class="helpline-item"><span>👩 Women Helpline</span><strong>1091</strong></div>
+                                <div class="helpline-item"><span>🏦 Cyber Crime</span><strong>1930</strong></div>
+                                <div class="helpline-item"><span>🧒 Child Helpline</span><strong>1098</strong></div>
+                                <div class="helpline-item"><span>🆘 Emergency</span><strong>112</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- end page-container -->
+    </main>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loading-overlay" style="display:none">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loading-text">Analyzing...</div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast"></div>
+
+    <script src="analyzer.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

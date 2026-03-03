@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AntiGravityCore — AOSP System Service Manifest
+    
+    This manifest declares the AntiGravityCoreService as a 
+    persistent, privileged system service. In an AOSP build,
+    this would be placed in:
+      frameworks/base/packages/AntiGravityCore/AndroidManifest.xml
+    
+    On a standard Android device (non-AOSP), a subset of features
+    can be implemented using:
+      - DeviceAdminReceiver (for device policy)
+      - AccessibilityService (for key event interception)
+      - ForegroundService (for persistent GPS tracking)
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.phishguard.antigravity.core"
+    android:sharedUserId="android.uid.system"
+    android:versionCode="1"
+    android:versionName="1.0.0">
+
+    <!-- ═══ PERMISSIONS: System-level ═══ -->
+    
+    <!-- Location: High-accuracy GPS tracking -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    
+    <!-- Telephony: IMEI, cell info, SIM state -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+    
+    <!-- Network: MQTT communication -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    
+    <!-- SMS: Fallback tracking when data unavailable -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    
+    <!-- Wake Lock: Keep CPU alive during fake-off -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- System Overlay: Fake shutdown animation + auth overlay -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+    
+    <!-- Device Admin: Screen lock, wipe protection -->
+    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
+    
+    <!-- Settings: Brightness, sound, airplane mode control -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    
+    <!-- Bluetooth: Disable non-essential radios -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    
+    <!-- Boot: Auto-start on device boot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Vibrator: Fake shutdown haptic -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    
+    <!-- Foreground Service: Persistent tracking -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    
+    <!-- Shutdown interception -->
+    <uses-permission android:name="android.permission.SHUTDOWN" />
+    
+    <!-- Storage: Local flash dump -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- ═══ CUSTOM PERMISSION: Guard IPC access ═══ -->
+    <permission
+        android:name="com.phishguard.permission.ADMIN"
+        android:protectionLevel="signature|privileged"
+        android:label="PhishGuard Admin Access"
+        android:description="@string/permission_admin_desc" />
+
+    <uses-permission android:name="com.phishguard.permission.ADMIN" />
+
+    <!-- ═══ HARDWARE FEATURES ═══ -->
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="true" />
+    <uses-feature android:name="android.hardware.telephony" android:required="true" />
+
+    <application
+        android:persistent="true"
+        android:allowBackup="false"
+        android:label="AntiGravityCore"
+        android:directBootAware="true">
+
+        <!-- ═══ MAIN SERVICE ═══ -->
+        <service
+            android:name=".AntiGravityCoreService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location"
+            android:permission="com.phishguard.permission.ADMIN"
+            android:persistent="true"
+            android:stopWithTask="false">
+            <intent-filter>
+                <action android:name="com.phishguard.antigravity.BIND" />
+            </intent-filter>
+        </service>
+
+        <!-- ═══ BOOT RECEIVER ═══ -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ═══ DEVICE ADMIN RECEIVER ═══ -->
+        <receiver
+            android:name=".AntiGravityDeviceAdmin"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

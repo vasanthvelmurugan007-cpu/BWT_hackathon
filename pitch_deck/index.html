@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard AI | India's Cybersecurity Shield</title>
+  <meta name="description"
+    content="PhishGuard AI — The all-in-one cybersecurity shield protecting 1.4 billion Indians from phishing, fraud, deepfakes, and digital threats.">
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/framer-motion@10.15.0/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script>window.FramerMotion = window.Motion;</script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #050505;
+      color: white;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+    }
+
+    .glass-dark {
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+    }
+
+    .india-grad {
+      background: linear-gradient(90deg, #FF671F, #fff, #046A38);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .pill {
+      display: inline-block;
+      font-weight: 700;
+      letter-spacing: .22em;
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+
+    .next-btn {
+      background: linear-gradient(135deg, #ff4d4d, #aa0000);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .next-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 22px rgba(200, 0, 0, .5);
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+
+    .dot-red {
+      background: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, .7);
+    }
+
+    .dot-amber {
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, .7);
+    }
+
+    .dot-blue {
+      background: #60a5fa;
+      box-shadow: 0 0 10px rgba(96, 165, 250, .7);
+    }
+
+    .dot-emerald {
+      background: #34d399;
+      box-shadow: 0 0 10px rgba(52, 211, 153, .7);
+    }
+
+    .dot-rose {
+      background: #fb7185;
+      box-shadow: 0 0 10px rgba(251, 113, 133, .7);
+    }
+
+    .dot-violet {
+      background: #a78bfa;
+      box-shadow: 0 0 10px rgba(167, 139, 250, .7);
+    }
+
+    .dot-teal {
+      background: #2dd4bf;
+      box-shadow: 0 0 10px rgba(45, 212, 191, .7);
+    }
+
+    .dot-purple {
+      background: #c084fc;
+      box-shadow: 0 0 10px rgba(192, 132, 252, .7);
+    }
+
+    .dot-orange {
+      background: #fb923c;
+      box-shadow: 0 0 10px rgba(251, 146, 60, .7);
+    }
+
+    .dot-white {
+      background: #fff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, .5);
+    }
+
+    .dot-indicator {
+      height: 5px;
+      border-radius: 999px;
+      background: white;
+      transition: all .3s ease;
+      cursor: pointer;
+    }
+
+    .dot-indicator.on {
+      width: 28px;
+      opacity: 1;
+    }
+
+    .dot-indicator.off {
+      width: 8px;
+      opacity: .18;
+    }
+
+    .progress-bar {
+      height: 3px;
+      background: rgba(255, 255, 255, .08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .5s ease;
+    }
+
+    .scan-line {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scan-line::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(96, 165, 250, .15), transparent);
+      animation: scanAnim 2.5s infinite;
+    }
+
+    @keyframes scanAnim {
+      0% {
+        left: -60%;
+      }
+
+      100% {
+        left: 130%;
+      }
+    }
+
+    .pulse-ring {
+      animation: pulseRing 2s ease-out infinite;
+    }
+
+    @keyframes pulseRing {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, .4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    .blink {
+      animation: blink 1.2s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .tag-badge {
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .timeline-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const { motion, AnimatePresence } = FramerMotion;
+
+    /* ─────────────────────────────────────────────────────────────
+       SLIDE COMPONENTS
+    ───────────────────────────────────────────────────────────── */
+
+    /* SLIDE 1: Hero */
+    function Slide1() {
+      return (
+        <div className="flex-1 flex gap-12 items-center">
+          <div className="flex-1 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <span className="pill" style={{ color: '#f87171', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)' }}>INDIA'S CYBER GUARDIAN</span>
+              <h1 className="font-black leading-[1.0] tracking-tight" style={{ fontSize: 'clamp(48px,5.5vw,88px)' }}>
+                Phish<span style={{ color: '#ef4444' }}>Guard</span> AI
+              </h1>
+              <p className="text-lg text-white/50 font-medium max-w-md leading-relaxed">
+                The all-in-one cybersecurity shield protecting<br />
+                <span className="text-white/80 font-semibold">1.4 billion Indians</span> from digital threats.
+              </p>
+            </div>
+            <div className="flex gap-4 flex-wrap">
+              {[['🛡️', 'Phishing Detection'], ['📍', 'Anti-Theft FIR'], ['👤', 'Deepfake Guard'], ['💳', 'Fraud Prevention']].map(([e, l]) => (
+                <div key={l} className="glass-dark flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white/80">{e} {l}</div>
+              ))}
+            </div>
+            <div className="flex gap-4 items-center">
+              <button id="hero-next" className="next-btn">Explore Features →</button>
+              <div className="flex flex-col gap-1 text-xs text-white/40">
+                <span>10 Slides</span><span>Hackathon 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass flex-col items-center justify-center relative overflow-hidden shrink-0"
+            style={{ width: 'clamp(260px,30vw,400px)', aspectRatio: '1', display: 'flex' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(239,68,68,.18) 0%, transparent 70%)' }} />
+            <div className="pulse-ring" style={{ width: 100, height: 100, borderRadius: '50%', background: 'rgba(239,68,68,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i data-lucide="shield-alert" style={{ width: 56, height: 56, color: '#ef4444', filter: 'drop-shadow(0 0 20px #ef444488)' }}></i>
+            </div>
+            <div className="absolute bottom-6 left-6 right-6">
+              <div className="glass-dark p-3 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full blink" style={{ background: '#22c55e' }} />
+                <span className="text-xs text-white/60 font-semibold">Threat scanning active…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 2: Problem */
+    function Slide2() {
+      const stats = [
+        { n: '₹10,319 Cr', l: 'Lost to cyber fraud in 2023', c: '#f59e0b' },
+        { n: '7.4 Lakh', l: 'Cybercrime cases reported', c: '#ef4444' },
+        { n: '1 in 3', l: 'Indias victimized by UPI scam', c: '#fb7185' },
+      ];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#fbbf24', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)' }}>THE PROBLEM</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(36px,4.5vw,72px)' }}>India is Under<br /><span style={{ color: '#f59e0b' }}>Cyber Attack</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">Digital India's explosive growth has created an ever-widening attack surface for criminals.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {[
+                'UPI Fraud & SIM Swap draining life savings daily',
+                'Deepfake images weaponized against women & children',
+                'SMS phishing — primary entry point for all scams',
+                'No single app addresses ALL these threats together',
+              ].map((t, i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .1 + i * .08 }} className="flex gap-3 items-start">
+                  <div className="dot dot-amber mt-1.5" />
+                  <span className="text-base text-white/70">{t}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 shrink-0" style={{ width: 'clamp(200px,26vw,320px)' }}>
+            {stats.map((s, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .15 + i * .1 }} className="glass-dark p-5">
+                <div className="font-black text-3xl" style={{ color: s.c }}>{s.n}</div>
+                <div className="text-xs text-white/45 font-medium mt-1">{s.l}</div>
+              </motion.div>
+            ))}
+            <div className="glass-dark p-4 text-center text-xs text-white/40 font-semibold tracking-wide">Source: NCRB 2023 Report</div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 3: Phishing Detection */
+    function Slide3() {
+      const msgs = [
+        { from: 'Scammer', text: '🚨 URGENT: Your SBI account blocked! Click now: bit.ly/3xr8UPI', risk: 'HIGH', color: '#ef4444' },
+        { from: 'Scammer', text: 'Congratulations! You won ₹50,000 reward. Claim: sbi-reward.xyz', risk: 'HIGH', color: '#ef4444' },
+        { from: 'Legit', text: 'Your OTP for login is 847291. Valid for 5 mins. Do not share.', risk: 'SAFE', color: '#22c55e' },
+      ];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#93c5fd', background: 'rgba(96,165,250,.1)', border: '1px solid rgba(96,165,250,.25)' }}>CORE FEATURE 01</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>AI Phishing &<br /><span style={{ color: '#60a5fa' }}>Scam Detection</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">Real-time ML analysis of every SMS, URL and email — explained in plain language.</p>
+            </div>
+            <div className="flex gap-6">
+              {[['98%', 'Detection accuracy'], ['<0.3s', 'Analysis speed'], ['12+', 'Languages']].map(([n, l]) => (
+                <div key={l} className="stat-card text-center">
+                  <div className="font-black text-2xl" style={{ color: '#60a5fa' }}>{n}</div>
+                  <div className="text-xs text-white/40 mt-1">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SMS Scanner mockup */}
+          <div className="glass-dark shrink-0 overflow-hidden scan-line" style={{ width: 'clamp(220px,28vw,360px)', padding: '0' }}>
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
+              <i data-lucide="scan-line" style={{ width: 14, height: 14, color: '#60a5fa' }}></i>
+              <span className="text-xs font-bold text-white/70 tracking-wide">PHISHGUARD SCANNER</span>
+              <div className="ml-auto w-2 h-2 rounded-full blink" style={{ background: '#60a5fa' }} />
+            </div>
+            <div className="flex flex-col gap-0">
+              {msgs.map((m, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .2 + i * .15 }} className="px-4 py-3 border-b border-white/5">
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-xs text-white/40 font-semibold">{m.from}</span>
+                    <span className="tag-badge font-black" style={{ background: `${m.color}22`, color: m.color }}>{m.risk}</span>
+                  </div>
+                  <p className="text-xs text-white/65 leading-relaxed">{m.text}</p>
+                  {m.risk === 'HIGH' && (
+                    <div className="mt-2 text-[10px] font-semibold" style={{ color: '#f87171' }}>⚠ Suspicious URL pattern + Urgency trigger detected</div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 4: Stolen Phone */
+    function Slide4() {
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#6ee7b7', background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>CORE FEATURE 02</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>Stolen Phone?<br /><span style={{ color: '#34d399' }}>Auto-FIR.</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">Remote lock, GPS tracking, and police FIR — all in one tap. No time wasted.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {[
+                ['Remote Lock & Wipe', 'Locks device and erases data remotely via SMS command'],
+                ['GPS Live Tracking', 'Pings location to your secondary device every 30 seconds'],
+                ['Auto-FIR Filing', 'Generates & sends FIR draft to nearest police OTP'],
+                ['Intruder Selfie', 'Silent front-camera shot sent to your email on wrong PIN'],
+              ].map(([t, d], i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .1 + i * .09 }} className="glass-dark px-4 py-3 flex gap-3 items-start">
+                  <div className="dot dot-emerald" />
+                  <div>
+                    <div className="text-sm font-bold text-white/90">{t}</div>
+                    <div className="text-xs text-white/45 mt-0.5">{d}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Phone mockup */}
+          <div className="glass shrink-0 relative" style={{ width: 'clamp(180px,22vw,280px)', borderRadius: 28, padding: '12px 8px', background: 'rgba(0,0,0,.5)' }}>
+            <div className="w-full rounded-2xl overflow-hidden" style={{ background: '#0a1a0f', padding: 16 }}>
+              <div className="text-center mb-4">
+                <div className="text-[10px] text-white/30 font-bold tracking-widest mb-1">PHONEGUARD ACTIVE</div>
+                <div className="font-black text-2xl" style={{ color: '#34d399' }}>LOCKED</div>
+              </div>
+              <div className="flex flex-col gap-2">
+                {[
+                  { icon: 'map-pin', label: 'Last seen', val: 'Coimbatore, TN', c: '#34d399' },
+                  { icon: 'clock', label: '2 mins ago', val: '21:48', c: '#60a5fa' },
+                  { icon: 'battery', label: 'Battery', val: '67%', c: '#fbbf24' },
+                  { icon: 'wifi', label: 'Network', val: 'Jio 4G', c: '#a78bfa' },
+                ].map(r => (
+                  <div key={r.label} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,.04)' }}>
+                    <i data-lucide={r.icon} style={{ width: 12, height: 12, color: r.c }}></i>
+                    <span className="text-[10px] text-white/40 flex-1">{r.label}</span>
+                    <span className="text-[10px] font-bold" style={{ color: r.c }}>{r.val}</span>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full mt-4 py-2.5 rounded-xl font-black text-xs tracking-widest" style={{ background: 'linear-gradient(135deg,#15803d,#052e16)', color: '#4ade80' }}>
+                📁 FILE AUTO-FIR
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 5: Women & Child Safety */
+    function Slide5() {
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#fda4af', background: 'rgba(251,113,133,.1)', border: '1px solid rgba(251,113,133,.2)' }}>CORE FEATURE 03</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>Women &<br /><span style={{ color: '#fb7185' }}>Child Safety</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">AI-powered digital dignity protection — deepfakes, SOS alerts, and family zone monitoring.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: 'scan-face', title: 'Deepfake Detection', desc: 'Detects morphed/AI-generated images with 94% accuracy', color: '#fb7185' },
+                { icon: 'alert-triangle', title: 'SOS Panic Button', desc: 'One-press alert to 5 contacts with live GPS coordinates', color: '#f97316' },
+                { icon: 'shield', title: 'Image Vault', desc: 'Private encrypted album — no unauthorized access ever', color: '#a78bfa' },
+                { icon: 'map', title: 'Family Safe Zone', desc: 'Real-time geofence alerts when child leaves safe zone', color: '#34d399' },
+              ].map((f, i) => (
+                <motion.div key={i} initial={{ opacity: 0, scale: .92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: .1 + i * .08 }} className="glass-dark p-4 flex flex-col gap-2">
+                  <i data-lucide={f.icon} style={{ width: 22, height: 22, color: f.color }}></i>
+                  <div className="text-sm font-bold text-white/90">{f.title}</div>
+                  <div className="text-xs text-white/45 leading-relaxed">{f.desc}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-dark shrink-0 flex flex-col gap-0 overflow-hidden" style={{ width: 'clamp(200px,26vw,320px)', borderRadius: 20 }}>
+            <div className="px-4 py-3 border-b border-white/5">
+              <div className="text-xs font-black tracking-widest" style={{ color: '#fb7185' }}>🛡 DEEPFAKE ANALYZER</div>
+            </div>
+            <div className="p-4 flex flex-col gap-3">
+              <div className="w-full rounded-xl flex items-center justify-center" style={{ aspectRatio: '16/9', background: '#111', border: '1px solid rgba(255,255,255,.07)' }}>
+                <i data-lucide="image" style={{ width: 36, height: 36, color: 'rgba(255,255,255,.15)' }}></i>
+              </div>
+              <div className="progress-bar">
+                <motion.div className="progress-fill" style={{ background: 'linear-gradient(90deg,#fb7185,#f43f5e)' }} initial={{ width: 0 }} animate={{ width: '78%' }} transition={{ delay: .4, duration: .8 }} />
+              </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <div className="text-xs text-white/40 font-semibold">AI Manipulation Score</div>
+                  <div className="font-black text-2xl" style={{ color: '#fb7185' }}>78%</div>
+                  <div className="text-xs font-bold mt-1" style={{ color: '#fb7185' }}>⚠ Likely Deepfake — Do Not Share</div>
+                </div>
+              </div>
+            </div>
+            <div className="px-4 pb-4">
+              <button className="w-full py-2.5 rounded-xl font-black text-xs tracking-wide" style={{ background: 'linear-gradient(135deg,#be123c,#4c0519)', color: '#fda4af' }}>
+                🚨 REPORT TO HELPLINE 1930
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 6: Financial Protection */
+    function Slide6() {
+      const txns = [
+        { to: 'Rahul Kumar (Verified)', amt: '₹ 1,200', risk: 'LOW', c: '#22c55e' },
+        { to: 'sbi-support-upi@hdfc', amt: '₹ 45,000', risk: 'BLOCKED', c: '#ef4444' },
+        { to: '9876543210@paytm', amt: '₹ 500', risk: 'LOW', c: '#22c55e' },
+        { to: 'lottery-prize@ybl', amt: '₹ 99,999', risk: 'SCAM', c: '#f59e0b' },
+      ];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#c4b5fd', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.2)' }}>CORE FEATURE 04</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>Financial<br /><span style={{ color: '#a78bfa' }}>Protection Hub</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">Stops UPI fraud, SIM Swap attacks, and fake payment requests before they drain your account.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {[
+                ['SIM Swap Blocker', 'Detects unauthorized SIM reissue & blocks OTP relay'],
+                ['UPI Receiver Check', 'Cross-references payee against national fraud database'],
+                ['Kill Switch', 'One tap freezes all linked cards and UPI IDs instantly'],
+              ].map(([t, d], i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .1 + i * .1 }} className="glass-dark px-4 py-3 flex gap-3">
+                  <div className="dot dot-violet" />
+                  <div>
+                    <div className="text-sm font-bold">{t}</div>
+                    <div className="text-xs text-white/40 mt-0.5">{d}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* UPI Guard panel */}
+          <div className="glass-dark shrink-0 flex flex-col gap-0 overflow-hidden" style={{ width: 'clamp(220px,28vw,350px)', borderRadius: 20 }}>
+            <div className="px-4 py-3 flex items-center gap-2 border-b border-white/5">
+              <i data-lucide="shield-check" style={{ width: 14, height: 14, color: '#a78bfa' }}></i>
+              <span className="text-xs font-black tracking-widest" style={{ color: '#a78bfa' }}>UPI GUARD — LIVE</span>
+              <div className="ml-auto w-2 h-2 rounded-full blink" style={{ background: '#a78bfa' }} />
+            </div>
+            <div className="flex flex-col divide-y divide-white/5 text-xs">
+              {txns.map((t, i) => (
+                <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .15 + i * .1 }} className="px-4 py-3 flex justify-between items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white/70 font-semibold truncate">{t.to}</div>
+                    <div className="text-white/35 mt-0.5">{t.amt}</div>
+                  </div>
+                  <span className="tag-badge font-black" style={{ background: `${t.c}22`, color: t.c, whiteSpace: 'nowrap' }}>{t.risk}</span>
+                </motion.div>
+              ))}
+            </div>
+            <div className="p-4">
+              <button className="w-full py-2.5 rounded-xl font-black text-xs" style={{ background: 'linear-gradient(135deg,#7c3aed,#2e1065)', color: '#c4b5fd' }}>
+                ⚡ ACTIVATE KILL SWITCH
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 7: Localization */
+    function Slide7() {
+      const langs = ['हिन्दी', 'தமிழ்', 'বাংলা', 'తెలుగు', 'ಕನ್ನಡ', 'മലയാളം', 'ਪੰਜਾਬੀ', 'मराठी', 'ગુજરાતી', 'ردو', 'English', 'অসমীয়া'];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#5eead4', background: 'rgba(45,212,191,.1)', border: '1px solid rgba(45,212,191,.2)' }}>THE DIFFERENTIATOR</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>Security in<br /><span style={{ color: '#2dd4bf' }}>Your Language</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">India's first hyper-localized cybersecurity solution — from Kashmir to Kanyakumari.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {[
+                ['Voice Alerts', 'Spoken warnings in mother tongue for maximum impact'],
+                ['Regional Scam DB', 'Local scam patterns updated by community reports'],
+                ['Dialect-aware NLP', 'Understands SMS text even in mixed language (Hinglish, Tanglish)'],
+              ].map(([t, d], i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .1 + i * .09 }} className="glass-dark px-4 py-3 flex gap-3">
+                  <div className="dot dot-teal" />
+                  <div>
+                    <div className="text-sm font-bold">{t}</div>
+                    <div className="text-xs text-white/40 mt-0.5">{d}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 shrink-0" style={{ width: 'clamp(200px,26vw,300px)' }}>
+            <div className="glass-dark p-4">
+              <div className="text-xs font-black tracking-widest mb-3" style={{ color: '#2dd4bf' }}>SUPPORTED LANGUAGES</div>
+              <div className="flex flex-wrap gap-2">
+                {langs.map((l, i) => (
+                  <motion.span key={l} initial={{ opacity: 0, scale: .8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * .04 }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold text-white/70"
+                    style={{ background: 'rgba(45,212,191,.08)', border: '1px solid rgba(45,212,191,.15)' }}>{l}</motion.span>
+                ))}
+              </div>
+            </div>
+            <div className="glass-dark p-4">
+              <div className="text-xs font-black tracking-widest mb-2" style={{ color: '#2dd4bf' }}>RURAL REACH</div>
+              <div className="font-black text-3xl text-white">640,000+</div>
+              <div className="text-xs text-white/40 mt-1">Villages covered via offline-first AI model</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 8: Business Model */
+    function Slide8() {
+      const tiers = [
+        { name: 'Free', price: '₹0', desc: 'Basic phishing scan, 3 alerts/day', c: '#fff', bg: 'rgba(255,255,255,.06)' },
+        { name: 'Pro', price: '₹49/mo', desc: 'Unlimited scans, UPI guard, SIM blocker, Auto-FIR', c: '#c084fc', bg: 'rgba(192,132,252,.1)', featured: true },
+        { name: 'Enterprise', price: 'Custom', desc: 'Bank API integration, White-label, Compliance reports', c: '#60a5fa', bg: 'rgba(96,165,250,.08)' },
+      ];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#e879f9', background: 'rgba(192,132,252,.1)', border: '1px solid rgba(192,132,252,.2)' }}>THE REVENUE</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>Built to Scale,<br /><span style={{ color: '#c084fc' }}>Built to Last</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">Multiple monetization layers — sustainable from Day 1.</p>
+            </div>
+            <div className="flex gap-5 flex-wrap">
+              {[['₹2,400 Cr', 'TAM — India cybersecurity market 2026'], ['4.2×', 'YoY growth in mobile security app installs'], ['68%', 'Users willing to pay for security post-fraud']].map(([n, l]) => (
+                <div key={l} className="stat-card flex-1 min-w-[100px]">
+                  <div className="font-black text-xl" style={{ color: '#c084fc' }}>{n}</div>
+                  <div className="text-[11px] text-white/40 leading-snug mt-1">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 shrink-0" style={{ width: 'clamp(200px,28vw,320px)' }}>
+            {tiers.map((t, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 + i * .1 }}
+                className="p-4 rounded-2xl relative" style={{ background: t.bg, border: `1px solid ${t.c}22` }}>
+                {t.featured && <span className="absolute -top-2.5 right-4 text-[10px] font-black tracking-widest px-2 py-0.5 rounded-full" style={{ background: '#7c3aed', color: '#e9d5ff' }}>POPULAR</span>}
+                <div className="flex justify-between items-start">
+                  <div className="font-bold text-sm" style={{ color: t.c }}>{t.name}</div>
+                  <div className="font-black text-lg" style={{ color: t.c }}>{t.price}</div>
+                </div>
+                <div className="text-xs text-white/45 mt-1.5 leading-relaxed">{t.desc}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 9: Roadmap */
+    function Slide9() {
+      const road = [
+        { q: 'Q1 2026', label: 'MVP Hackathon Launch', done: true, c: '#fb923c', items: ['Phishing scanner', 'Deepfake detector', 'Basic UPI guard'] },
+        { q: 'Q3 2026', label: 'PAN-India Public Release', done: false, c: '#fbbf24', items: ['Play Store & iOS', '12 language support', 'SIM swap blocker'] },
+        { q: 'Q1 2027', label: 'Banking API Integration', done: false, c: '#60a5fa', items: ['50+ public sector banks', 'Kill switch', 'FIR auto-submit'] },
+        { q: 'Q4 2027', label: 'National Scam Database', done: false, c: '#a78bfa', items: ['Decentralised AI threat DB', 'Govt partnership', '1 Cr+ active users'] },
+      ];
+      return (
+        <div className="flex-1 flex gap-10 items-center">
+          <div className="flex-1 flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="pill" style={{ color: '#fdba74', background: 'rgba(251,146,60,.1)', border: '1px solid rgba(251,146,60,.2)' }}>THE VISION</span>
+              <h1 className="font-black leading-[1.05] tracking-tight" style={{ fontSize: 'clamp(34px,4vw,66px)' }}>From MVP to<br /><span style={{ color: '#fb923c' }}>National Infra</span></h1>
+              <p className="text-base text-white/50 max-w-sm leading-relaxed">A clear execution path from hackathon to 1 crore protected Indians by 2027.</p>
+            </div>
+            <div className="flex gap-4 flex-wrap">
+              {[['2026', 'MVP & Launch'], ['2027', 'Scale & Integrate'], ['2028', 'National Standard']].map(([y, l]) => (
+                <div key={y} className="stat-card flex-1 min-w-[80px] text-center">
+                  <div className="font-black text-2xl" style={{ color: '#fb923c' }}>{y}</div>
+                  <div className="text-[11px] text-white/40 mt-1">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 shrink-0 relative" style={{ width: 'clamp(220px,30vw,360px)' }}>
+            <div className="absolute left-[18px] top-6 bottom-6 w-px" style={{ background: 'rgba(255,255,255,.08)' }} />
+            {road.map((r, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .1 + i * .1 }} className="flex gap-4 items-start pl-1">
+                <div className="timeline-dot mt-1 shrink-0" style={{ background: r.done ? r.c : 'rgba(255,255,255,.1)', boxShadow: r.done ? `0 0 10px ${r.c}88` : 'none', border: `2px solid ${r.c}` }} />
+                <div className="glass-dark p-3 flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-black" style={{ color: r.c }}>{r.q}</span>
+                    {r.done && <span className="tag-badge" style={{ background: 'rgba(34,197,94,.15)', color: '#4ade80', fontSize: 9 }}>✓ DONE</span>}
+                  </div>
+                  <div className="text-sm font-bold text-white/85 mb-1">{r.label}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {r.items.map(it => <span key={it} className="text-[10px] text-white/40 bg-white/5 rounded px-1.5 py-0.5">{it}</span>)}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* SLIDE 10: Conclusion */
+    function Slide10() {
+      return (
+        <div className="flex-1 flex gap-12 items-center">
+          <div className="flex-1 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <span className="pill" style={{ color: '#e5e5e5', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.15)' }}>THE CONCLUSION</span>
+              <h1 className="font-black leading-[1.0] tracking-tight" style={{ fontSize: 'clamp(42px,5vw,80px)' }}>
+                Let's Secure<br /><span className="india-grad">Digital Bharat</span>
+              </h1>
+              <p className="text-base text-white/50 max-w-md leading-relaxed">
+                PhishGuard AI isn't just an app — it's a movement to make India's digital growth <span className="text-white font-semibold">safe, inclusive, and trusted</span> for every citizen.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {['Scalable: Works on ₹3,000 Android phones offline', 'Urgent: Every second, an Indian loses ₹ to cybercrime', 'Patriotic: Built in India, for India — with Bharat at heart'].map((t, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <div className="dot dot-white" />
+                  <span className="text-base text-white/70">{t}</span>
+                </div>
+              ))}
+            </div>
+            <div className="glass-dark p-4 flex items-center gap-4" style={{ borderRadius: 16 }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-xl" style={{ background: 'linear-gradient(135deg,#ef4444,#7f1d1d)' }}>V</div>
+              <div>
+                <div className="font-black text-base">Vasant S</div>
+                <div className="text-xs text-white/45">Lead Architect & Cybersecurity Expert</div>
+              </div>
+              <div className="ml-auto flex gap-2">
+                <span className="tag-badge" style={{ background: 'rgba(239,68,68,.15)', color: '#f87171', fontSize: 9 }}>HACKATHON 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass shrink-0 flex flex-col items-center justify-center gap-6 p-8" style={{ width: 'clamp(200px,26vw,320px)', aspectRatio: '1', borderRadius: 28, background: 'rgba(0,0,0,.4)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center font-black text-4xl mb-4" style={{ background: 'linear-gradient(135deg,#ef4444,#7f1d1d)', boxShadow: '0 0 30px rgba(239,68,68,.3)' }}>P</div>
+              <div className="font-black text-xl tracking-wider">PHISHGUARD AI</div>
+              <div className="text-xs text-white/40 tracking-widest mt-1 uppercase">Premium Cybersecurity</div>
+            </div>
+            <div className="flex flex-col gap-1 text-xs text-white/30 text-center w-full">
+              <div className="h-px bg-white/5 mb-2" />
+              <span>🛡 Phishing • Anti-Theft • Safety • Finance</span>
+              <span className="mt-1 india-grad font-black text-sm">Safe Digital Bharat</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const SLIDES = [
+      { bg: 'radial-gradient(ellipse at 75% 50%, #3f0d0d 0%, #050505 65%)', Component: Slide1 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #2d1a00 0%, #050505 65%)', Component: Slide2 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #0a1a3a 0%, #050505 65%)', Component: Slide3 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #031a0f 0%, #050505 65%)', Component: Slide4 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #2a0311 0%, #050505 65%)', Component: Slide5 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #0f0520 0%, #050505 65%)', Component: Slide6 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #021a18 0%, #050505 65%)', Component: Slide7 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #130523 0%, #050505 65%)', Component: Slide8 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #1e0c00 0%, #050505 65%)', Component: Slide9 },
+      { bg: 'radial-gradient(ellipse at 75% 50%, #111111 0%, #050505 65%)', Component: Slide10 },
+    ];
+
+    /* ─────────────────────────────────────────────────────────────
+       MAIN APP
+    ───────────────────────────────────────────────────────────── */
+    function App() {
+      const [cur, setCur] = useState(0);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); setCur(c => Math.min(c + 1, SLIDES.length - 1)); }
+          if (e.key === 'ArrowLeft') setCur(c => Math.max(c - 1, 0));
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, []);
+
+      useEffect(() => {
+        setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+      }, [cur]);
+
+      const { bg, Component } = SLIDES[cur];
+
+      return (
+        <div style={{ background: bg, transition: 'background 0.7s ease' }}
+          className="relative h-screen w-full overflow-hidden flex flex-col">
+
+          {/* Header */}
+          <header className="flex items-center justify-between px-10 pt-8 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl"
+                style={{ background: 'linear-gradient(135deg,#ef4444,#7f1d1d)', boxShadow: '0 0 16px rgba(239,68,68,.3)' }}>P</div>
+              <div>
+                <div className="text-base font-black tracking-[.15em]">PHISHGUARD AI</div>
+                <div className="text-[10px] font-bold tracking-widest text-white/30 uppercase">Premium Cybersecurity</div>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center">
+              {SLIDES.map((_, i) => (
+                <div key={i} onClick={() => setCur(i)} className={`dot-indicator ${i === cur ? 'on' : 'off'}`} />
+              ))}
+            </div>
+          </header>
+
+          {/* Content */}
+          <main className="flex-1 flex px-10 md:px-16 pb-4 overflow-hidden" style={{ minHeight: 0 }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={cur}
+                initial={{ opacity: 0, y: 36, scale: .98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -36, scale: .98 }}
+                transition={{ duration: .4, ease: [0.22, 1, 0.36, 1] }}
+                className="flex-1 flex"
+              >
+                <Component />
+              </motion.div>
+            </AnimatePresence>
+          </main>
+
+          {/* Footer */}
+          <footer className="flex items-center justify-between px-10 pb-6 shrink-0">
+            <button onClick={() => setCur(c => Math.max(c - 1, 0))} disabled={cur === 0}
+              className="text-xs text-white/25 hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer font-family-inherit"
+              style={{ opacity: cur === 0 ? .3 : 1 }}>← Prev</button>
+
+            <div className="flex items-center gap-4">
+              <span className="india-grad font-bold text-xs tracking-widest uppercase px-4 py-1.5 rounded-full"
+                style={{ border: '1px solid rgba(255,255,255,.1)', background: 'rgba(255,255,255,.04)' }}>Safe Digital Bharat</span>
+            </div>
+
+            <button id="footer-next" onClick={() => setCur(c => Math.min(c + 1, SLIDES.length - 1))} disabled={cur === SLIDES.length - 1}
+              className="next-btn" style={{ padding: '10px 22px', fontSize: 13, opacity: cur === SLIDES.length - 1 ? .4 : 1 }}>
+              {cur === SLIDES.length - 1 ? 'Thank You!' : `Next → ${cur + 2}/${SLIDES.length}`}
+            </button>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>
