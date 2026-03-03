@@ -18,15 +18,15 @@ wss.on('connection', (ws) => {
         try {
             const data = JSON.parse(message);
             if (data.action === 'subscribe' && data.imei) {
-                // Compute the exact 16-byte SHA-256 hash expected from SentinelUdpClient
+                // Compute the exact 32-byte SHA-256 hash expected from SentinelUdpClient
                 const hashBuf = crypto.createHash('sha256')
                     .update('device-unique-salt-pg-2026')
                     .update(data.imei)
                     .digest();
-                const hashHex = hashBuf.slice(0, 16).toString('hex');
+                const hashHex = hashBuf.toString('hex'); // 32 bytes = 64 hex chars
 
                 clients.set(ws, hashHex);
-                console.log(`[WS] Subscribed to IMEI: ${data.imei.slice(0, 4)}*** (Hash: ${hashHex})`);
+                console.log(`[WS] Subscribed to IMEI: ${data.imei.slice(0, 4)}*** (Hash: ${hashHex.slice(0, 16)}...)`);
                 ws.send(JSON.stringify({ status: 'subscribed', hashHex: hashHex }));
             } else if (data.action === 'unsubscribe') {
                 clients.delete(ws);
@@ -52,9 +52,9 @@ udpServer.on('error', (err) => {
 });
 
 udpServer.on('message', (msg, rinfo) => {
-    // 28-Byte Frame requirement mandated by SentinelUdpClient
-    if (msg.length !== 28) {
-        console.log(`[UDP] Dropped packed of length ${msg.length} from ${rinfo.address}:${rinfo.port}`);
+    // 44-Byte Frame requirement mandated by SentinelUdpClient
+    if (msg.length !== 44) {
+        console.log(`[UDP] Dropped packet of length ${msg.length} from ${rinfo.address}:${rinfo.port}`);
         return;
     }
 
@@ -62,14 +62,14 @@ udpServer.on('message', (msg, rinfo) => {
         const version = msg.readUInt8(0);
         if (version !== 1) return;
 
-        const imeiHashBuf = msg.slice(1, 17);
+        const imeiHashBuf = msg.slice(1, 33);
         const imeiHashHex = imeiHashBuf.toString('hex');
 
         // Java ByteBuffer defaults to BIG_ENDIAN
-        const lat = msg.readFloatBE(17);
-        const lon = msg.readFloatBE(21);
-        const batteryPercent = msg.readUInt8(25);
-        const cellId = msg.readUInt16BE(26);
+        const lat = msg.readFloatBE(33);
+        const lon = msg.readFloatBE(37);
+        const batteryPercent = msg.readUInt8(41);
+        const cellId = msg.readUInt16BE(42);
 
         // Forward this real telemetry to anyone subscribed on the WebSocket
         const payloadJSON = JSON.stringify({

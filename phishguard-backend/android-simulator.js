@@ -17,12 +17,11 @@ if (imei.length < 15) {
 
 console.log(`[Simulator] Initializing AntiGravityCore Sentinel UDP Client Simulator for IMEI: ${imei}`);
 
-// 1. Generate the exact same SHA-256 hash logic as the Android codebase
+// 1. Generate the exact same SHA-256 hash logic as the Android codebase (32 bytes)
 const hashBuf = crypto.createHash('sha256')
     .update('device-unique-salt-pg-2026')
     .update(imei)
     .digest();
-const hashTrun = hashBuf.slice(0, 16);
 
 // Simulate device starting at random Bangalore location
 let lat = 12.9716 + (Math.random() - 0.5) * 0.05;
@@ -33,35 +32,35 @@ const client = dgram.createSocket('udp4');
 
 let seq = 1;
 setInterval(() => {
-    // Construct 28-Byte Payload matching SentinelUdpClient.java
-    const payload = Buffer.alloc(28);
+    // Construct 44-Byte Payload matching SentinelUdpClient.java
+    const payload = Buffer.alloc(44);
 
     // Byte 0: Version
     payload.writeUInt8(1, 0);
 
-    // Bytes 1-16: IMEI Hash
-    hashTrun.copy(payload, 1);
+    // Bytes 1-32: IMEI Hash (32-bytes)
+    hashBuf.copy(payload, 1);
 
-    // Bytes 17-20: Latitude (Float BE)
+    // Bytes 33-36: Latitude (Float BE)
     lat += (Math.random() - 0.5) * 0.002;
-    payload.writeFloatBE(lat, 17);
+    payload.writeFloatBE(lat, 33);
 
-    // Bytes 21-24: Longitude (Float BE)
+    // Bytes 37-40: Longitude (Float BE)
     lon += (Math.random() - 0.5) * 0.002;
-    payload.writeFloatBE(lon, 21);
+    payload.writeFloatBE(lon, 37);
 
-    // Byte 25: Battery 
+    // Byte 41: Battery 
     battery = Math.max(1, battery - (Math.random() > 0.8 ? 1 : 0));
-    payload.writeUInt8(battery, 25);
+    payload.writeUInt8(battery, 41);
 
-    // Bytes 26-27: CellID
-    payload.writeUInt16BE(4092, 26);
+    // Bytes 42-43: CellID
+    payload.writeUInt16BE(4092, 42);
 
     client.send(payload, SERVER_PORT, SERVER_IP, (err) => {
         if (err) {
             console.error(`[Simulator] Failed to send UDP Heartbeat:`, err);
         } else {
-            console.log(`[Simulator] UDP Heartbeat Sent | SEQ: ${seq++} | LEN: 28 Bytes | LAT: ${lat.toFixed(5)} | LON: ${lon.toFixed(5)} | BAT: ${battery}%`);
+            console.log(`[Simulator] UDP Heartbeat Sent | SEQ: ${seq++} | LEN: 44 Bytes | LAT: ${lat.toFixed(5)} | LON: ${lon.toFixed(5)} | BAT: ${battery}%`);
         }
     });
 
