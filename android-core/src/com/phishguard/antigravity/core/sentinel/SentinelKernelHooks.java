@@ -31,18 +31,22 @@ public class SentinelKernelHooks {
     }
 
     /**
-     * Aquires a CPU lock preventing Android from entering Deep Sleep (Doze Mode).
+     * Acquires a CPU lock preventing Android from entering Deep Sleep (Doze Mode).
      * This is crucial to ensure the SentinelUDPClient fires every 5 seconds.
      * With big cores disabled via sysfs, the battery cost remains extremely low.
      */
     public void lockCpuActive() {
+        if (mPowerManager == null) {
+            Log.e(TAG, "PowerManager is null, cannot acquire WakeLock");
+            return;
+        }
         if (mStealthWakeLock == null) {
             mStealthWakeLock = mPowerManager.newWakeLock(
                     PowerManager.PARTIAL_WAKE_LOCK, "Sentinel:StealthLock");
             mStealthWakeLock.setReferenceCounted(false);
         }
         if (!mStealthWakeLock.isHeld()) {
-            mStealthWakeLock.acquire();
+            mStealthWakeLock.acquire(10 * 60 * 1000L); // 10 minutes max timeout
             Log.d(TAG, "PARTIAL_WAKE_LOCK acquired. Deep Sleep prevented.");
         }
     }
@@ -63,26 +67,81 @@ public class SentinelKernelHooks {
      */
     public boolean throttleSysFs() {
         Log.w(TAG, "Attempting Root SysFs Modification (CPU Throttle)..");
+        Process suProcess = null;
         try {
-            Process suProcess = Runtime.getRuntime().exec("su");
-            DataOutputStream os = new DataOutputStream(suProcess.getOutputStream());
+            suProcess = Runtime.getRuntime().exec("su");
+            try (DataOutputStream os = new DataOutputStream(suProcess.getOutputStream())) {
 
-            // Set Governor to PowerSave
-            os.writeBytes("echo powersave > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor\n");
+                // Set Governor to PowerSave
+                os.writeBytes("echo powersave > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor\n");
 
-            // Turn off big-cores entirely (cpu2-cpu7 depending on architecture)
-            os.writeBytes("echo 0 > /sys/devices/system/cpu/cpu4/online\n");
-            os.writeBytes("echo 0 > /sys/devices/system/cpu/cpu5/online\n");
-            os.writeBytes("echo 0 > /sys/devices/system/cpu/cpu6/online\n");
-            os.writeBytes("echo 0 > /sys/devices/system/cpu/cpu7/online\n");
-            os.writeBytes("exit\n");
+                // Dynamically detect available cores and offline all but cpu0
+                java.io.File cpuDir = new java.io.File("/sys/devices/system/cpu/");
+                java.io.File[] files = cpuDir.listFiles();
+                if (files != null) {
+                    for (java.io.File f : files) {
+                        if (f.getName().matches("cpu[1-9][0-9]*")) {
+                            String onlinePath = f.getAbsolutePath() + "/online";
+                            java.io.File onlineFile = new java.io.File(onlinePath);
+                            if (onlineFile.exists() && onlineFile.canWrite()) {
+                                os.writeBytes("echo 0 > " + onlinePath + "\n");
+                            }
+                        }
+                    }
+                }
+                os.writeBytes("exit\n");
+                os.flush();
+            }
 
-            os.flush();
-            suProcess.waitFor();
-            Log.i(TAG, "SysFs Throttle Success. Big Cores Offlined.");
-            return true;
+            // Consume streams to avoid hang
+            new Thread(() -> {
+                try {
+                    java.io.InputStream is = suProcess.getInputStream();
+                    while (is.read() != -1)
+                        ;
+                } catch (Exception ignore) {
+                }
+            }).start();
+            new Thread(() -> {
+                try {
+                    java.io.InputStream es = suProcess.getErrorStream();
+                    while (es.read() != -1)
+                        ;
+                } catch (Exception ignore) {
+                }
+            }).start();
+
+            boolean finished = false;
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                finished = suProcess.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
+            } else {
+                suProcess.waitFor();
+                finished = true;
+            }
+
+            if (!finished) {
+                suProcess.destroyForcibly();
+                Log.e(TAG, "SysFs Throttle timed out.");
+                return false;
+            }
+
+            if (suProcess.exitValue() == 0) {
+                Log.i(TAG, "SysFs Throttle Success. Big Cores Offlined.");
+                return true;
+            } else {
+                Log.e(TAG, "SysFs Throttle failed with exit code: " + suProcess.exitValue());
+                return false;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.e(TAG, "SysFs Throttle interrupted", e);
+            if (suProcess != null)
+                suProcess.destroyForcibly();
+            return false;
         } catch (Exception e) {
-            Log.e(TAG, "Failed SysFs Throttle. Lacking root/SELinux access. Err: " + e.getMessage());
+            Log.e(TAG, "Failed SysFs Throttle.", e);
+            if (suProcess != null)
+                suProcess.destroyForcibly();
             return false;
         }
     }

@@ -43,13 +43,20 @@ public class CellularTelemetryEngine {
      * `READ_PRIVILEGED_PHONE_STATE`.
      * Since Sentinel is a system app deployed to AOSP, this is natively supported.
      */
-    public String getDeviceImei() {
+    public synchronized String getDeviceImei() {
         if (mCachedImei != null)
             return mCachedImei;
 
+        if (Build.VERSION.SDK_INT >= 29) {
+            Log.w(TAG, "API 29+ restricts IMEI access. Using anonymous identifier.");
+            mCachedImei = "ANONYMIZED_DEVICE_ID";
+            return mCachedImei;
+        }
+
         if (mContext.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "Telephony permission missing! Cannot retrieve IMEI.");
-            return "UNKNOWN_IMEI";
+            mCachedImei = "UNKNOWN_IMEI";
+            return mCachedImei;
         }
 
         try {
@@ -61,14 +68,15 @@ public class CellularTelemetryEngine {
                 String deviceId = mTelephonyManager.getDeviceId();
                 mCachedImei = deviceId;
             }
-            Log.i(TAG, "IMEI Harvested Successfully. (Masked for logs: " + mCachedImei.substring(0, 4) + "****)");
+            // Removed log containing IMEI as per privacy guidelines
         } catch (SecurityException e) {
-            // This happens if the ROM does not grant READ_PRIVILEGED_PHONE_STATE
             Log.e(TAG, "SecurityException: OS rejected IMEI extraction! " + e.getMessage());
             mCachedImei = "UNKNOWN_IMEI";
         }
 
-        return mCachedImei != null ? mCachedImei : "UNKNOWN_IMEI";
+        if (mCachedImei == null)
+            mCachedImei = "UNKNOWN_IMEI";
+        return mCachedImei;
     }
 
     /**
