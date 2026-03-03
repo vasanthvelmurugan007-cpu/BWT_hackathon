@@ -1,0 +1,12 @@
+{
+    "name": "phishguard-c2-backend",
+    "version": "1.0.0",
+    "description": "Command and Control Server for Sentinel-IMEI UDP Telemetry",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "ws": "^8.16.0"
+    }
+}
