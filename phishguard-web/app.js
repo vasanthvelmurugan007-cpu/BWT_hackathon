@@ -217,15 +217,51 @@ function initMap() {
   } catch (e) { console.warn('Map init failed:', e); }
 }
 
-function updateMapPosition(lat, lng) {
-  currentLat = lat; currentLng = lng;
-  document.getElementById('lat-display').textContent = lat.toFixed(6);
-  document.getElementById('lng-display').textContent = lng.toFixed(6);
+let targetLat = currentLat;
+let targetLng = currentLng;
+let lerpAnimation = null;
+
+function animateMapToTarget() {
+  if (!map || !mapMarker) return;
+  const t = 0.05; // Smoothing factor
+  const dLat = (targetLat - currentLat);
+  const dLng = (targetLng - currentLng);
+
+  if (Math.abs(dLat) > 0.000001 || Math.abs(dLng) > 0.000001) {
+    currentLat += dLat * t;
+    currentLng += dLng * t;
+    mapMarker.setLatLng([currentLat, currentLng]);
+    map.panTo([currentLat, currentLng], { animate: false });
+    lerpAnimation = requestAnimationFrame(animateMapToTarget);
+  } else {
+    currentLat = targetLat;
+    currentLng = targetLng;
+    mapMarker.setLatLng([currentLat, currentLng]);
+  }
+}
+
+async function fetchSnappedCoordinates(lat, lng) {
+  try {
+    const response = await fetch(`https://router.project-osrm.org/nearest/v1/driving/${lng},${lat}?number=1`);
+    const data = await response.json();
+    if (data.code === 'Ok' && data.waypoints && data.waypoints.length > 0) {
+      const snappedLoc = data.waypoints[0].location;
+      return { lat: snappedLoc[1], lng: snappedLoc[0] };
+    }
+  } catch (e) { console.warn('Snap to road failed:', e); }
+  return { lat, lng };
+}
+
+async function updateMapPosition(lat, lng) {
+  const snapped = await fetchSnappedCoordinates(lat, lng);
+  targetLat = snapped.lat; targetLng = snapped.lng;
+  document.getElementById('lat-display').textContent = targetLat.toFixed(6);
+  document.getElementById('lng-display').textContent = targetLng.toFixed(6);
   document.getElementById('last-update').textContent = new Date().toLocaleTimeString('en-IN');
 
   if (map && mapMarker) {
-    mapMarker.setLatLng([lat, lng]);
-    map.panTo([lat, lng]);
+    if (lerpAnimation) cancelAnimationFrame(lerpAnimation);
+    animateMapToTarget();
   }
 }
 

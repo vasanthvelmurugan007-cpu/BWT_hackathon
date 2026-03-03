@@ -30,6 +30,14 @@ import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import android.os.PowerManager;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +75,8 @@ public class StealthLocationEngine {
     private final MqttBurstClient mMqttClient;
     private final String mMqttTopic;
     private final Handler mHandler;
+    private final FusedLocationProviderClient mFusedLocationClient;
+    private PowerManager.WakeLock mWakeLock;
 
     // ─── State ───────────────────────────────────────────────────
     private enum Mode {
@@ -75,6 +85,7 @@ public class StealthLocationEngine {
 
     private Mode mCurrentMode = Mode.STOPPED;
     private long mCurrentIntervalMs;
+    private int mWarmupFixesIgnored = 0;
 
     // ─── Location cache ──────────────────────────────────────────
     private double mLastLatitude = 0.0;
@@ -100,6 +111,57 @@ public class StealthLocationEngine {
     private Location mLastSignificantLocation = null;
     private static final float SIGNIFICANT_DISPLACEMENT_M = 10.0f;
 
+    // ─── Kalman Filter ───────────────────────────────────────────
+    private final KalmanLatLong mKalman = new KalmanLatLong(3.0f); // 3 m/s process noise
+
+    private static class KalmanLatLong {
+        private final float MinAccuracy = 1;
+        private float Q_metres_per_second;
+        private long TimeStamp_milliseconds;
+        private double lat;
+        private double lng;
+        private float variance; // < 0 means uninitialized
+
+        public KalmanLatLong(float Q_metres_per_second) {
+            this.Q_metres_per_second = Q_metres_per_second;
+            this.variance = -1;
+        }
+
+        public void process(double lat_measurement, double lng_measurement, float accuracy,
+                long TimeStamp_milliseconds) {
+            if (accuracy < MinAccuracy)
+                accuracy = MinAccuracy;
+            if (variance < 0) {
+                this.TimeStamp_milliseconds = TimeStamp_milliseconds;
+                lat = lat_measurement;
+                lng = lng_measurement;
+                variance = accuracy * accuracy;
+            } else {
+                long TimeInc_milliseconds = TimeStamp_milliseconds - this.TimeStamp_milliseconds;
+                if (TimeInc_milliseconds > 0) {
+                    variance += TimeInc_milliseconds * Q_metres_per_second * Q_metres_per_second / 1000;
+                    this.TimeStamp_milliseconds = TimeStamp_milliseconds;
+                }
+                float K = variance / (variance + accuracy * accuracy);
+                lat += K * (lat_measurement - lat);
+                lng += K * (lng_measurement - lng);
+                variance = (1 - K) * variance;
+            }
+        }
+
+        public double getLat() {
+            return lat;
+        }
+
+        public double getLng() {
+            return lng;
+        }
+
+        public float getAccuracy() {
+            return (float) Math.sqrt(variance);
+        }
+    }
+
     public StealthLocationEngine(Context context,
             LocationManager locationManager,
             TelephonyManager telephonyManager,
@@ -114,6 +176,13 @@ public class StealthLocationEngine {
         mMqttTopic = mqttTopic;
         mCurrentIntervalMs = initialIntervalMs;
         mHandler = handler;
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
+
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        if (pm != null) {
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PhishGuard:StealthLocationWakeLock");
+            mWakeLock.setReferenceCounted(false);
+        }
     }
 
     // ═════════════════════════════════════════════════════════════
@@ -159,23 +228,21 @@ public class StealthLocationEngine {
 
         mCurrentMode = Mode.STOLEN;
         mCurrentIntervalMs = intervalMs;
+        mWarmupFixesIgnored = 0;
+
+        if (mWakeLock != null && !mWakeLock.isHeld()) {
+            mWakeLock.acquire(10 * 60 * 1000L /* 10 minutes max */);
+            Log.d(TAG, "Acquired PARTIAL_WAKE_LOCK for Fake-Off Persistence");
+        }
 
         try {
-            // ── Primary: GPS provider (highest accuracy) ──────────
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    mCurrentIntervalMs,
-                    0.0f, // No minimum displacement — report every fix
-                    mLocationListener,
-                    mHandler.getLooper());
+            // ── Primary: Fused Location Provider (Highest accuracy) ──────────
+            LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+                    .setMinUpdateIntervalMillis(500)
+                    .setMinUpdateDistanceMeters(0.0f)
+                    .build();
 
-            // ── Secondary: Network provider (faster first fix) ────
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    mCurrentIntervalMs,
-                    0.0f,
-                    mNetworkLocationListener,
-                    mHandler.getLooper());
+            mFusedLocationClient.requestLocationUpdates(request, mFusedLocationCallback, mHandler.getLooper());
 
             // ── GNSS status for satellite count ───────────────────
             mLocationManager.registerGnssStatusCallback(
@@ -236,8 +303,16 @@ public class StealthLocationEngine {
             mLocationManager.removeUpdates(mLocationListener);
             mLocationManager.removeUpdates(mNetworkLocationListener);
             mLocationManager.unregisterGnssStatusCallback(mGnssCallback);
+            if (mFusedLocationClient != null) {
+                mFusedLocationClient.removeLocationUpdates(mFusedLocationCallback);
+            }
         } catch (Exception e) {
             // Ignore — might not be registered
+        }
+
+        if (mWakeLock != null && mWakeLock.isHeld()) {
+            mWakeLock.release();
+            Log.d(TAG, "Released PARTIAL_WAKE_LOCK");
         }
 
         // Flush any remaining batched payloads
@@ -250,6 +325,18 @@ public class StealthLocationEngine {
     // ═════════════════════════════════════════════════════════════
     // LOCATION LISTENERS
     // ═════════════════════════════════════════════════════════════
+
+    private final LocationCallback mFusedLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            if (locationResult == null) {
+                return;
+            }
+            for (Location location : locationResult.getLocations()) {
+                processNewLocation(location, "FUSED");
+            }
+        }
+    };
 
     /**
      * Primary GPS location listener.
@@ -333,64 +420,84 @@ public class StealthLocationEngine {
      * 3. Check significant displacement
      * 4. Publish via MQTT or batch (mode-dependent)
      * 5. SMS fallback if MQTT fails + stolen mode
-     */
-    private void processNewLocation(Location location, String source) {
-        if (location == null)
-            return;
-
-        // ── Accuracy filter ───────────────────────────────────────
-        if (mCurrentMode == Mode.STOLEN && location.getAccuracy() > 100.0f) {
-            // Too inaccurate for stolen mode — wait for better fix
-            Log.d(TAG, "Rejected " + source + " fix (accuracy: "
-                    + location.getAccuracy() + "m)");
-            return;
-        }
-
-        // ── Is this better than our last fix? ─────────────────────
-        boolean isBetterFix = (location.getAccuracy() < mLastAccuracy)
-                || (System.currentTimeMillis() - mLastFixTimeMs > mCurrentIntervalMs);
-
-        if (!isBetterFix && mCurrentMode != Mode.STOLEN)
-            return;
-
-        // ── Update cache ──────────────────────────────────────────
-        mLastLatitude = location.getLatitude();
-        mLastLongitude = location.getLongitude();
-        mLastAccuracy = location.getAccuracy();
-        mLastFixTimeMs = System.currentTimeMillis();
-        mLastSpeed = location.hasSpeed() ? location.getSpeed() : 0;
-        mLastBearing = location.hasBearing() ? location.getBearing() : 0;
-        mLastAltitude = location.hasAltitude() ? location.getAltitude() : 0;
-
-        Log.d(TAG, String.format("[%s] Fix: %.6f, %.6f (±%.0fm) sats=%d",
-                source, mLastLatitude, mLastLongitude, mLastAccuracy, mSatelliteCount));
-
-        // ── Publish based on mode ─────────────────────────────────
-        switch (mCurrentMode) {
-            case STOLEN:
-                // Publish EVERY fix immediately
-                publishLocation();
-                break;
-
-            case STEALTH:
-                // Batch for later
-                batchLocation();
-                break;
-
-            case PASSIVE:
-                // Only publish if significant displacement
-                if (isSignificantDisplacement(location)) {
-                    publishLocation();
-                }
-                break;
-        }
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // MQTT PUBLISHING
-    // ═════════════════════════════════════════════════════════════
-
-    /**
+     * if (location == null)
+     * return;
+     * 
+     * // ── Anti-Stale Data Filter ────────────────────────────────
+     * long age = System.currentTimeMillis() - location.getTime();
+     * if (age > 5000) {
+     * Log.d(TAG, "Rejected stale location fix (age: " + age + "ms)");
+     * return;
+     * }
+     * 
+     * if (location.getAccuracy() > 10.0f && mCurrentMode == Mode.STOLEN) {
+     * Log.d(TAG, "Rejected imprecise fix (accuracy: " + location.getAccuracy() +
+     * "m)");
+     * return;
+     * }
+     * 
+     * // ── Accuracy filter & Warm-up logic for Stolen Mode
+     * // ───────────────────────────────────────
+     * if (mCurrentMode == Mode.STOLEN) {
+     * if (mWarmupFixesIgnored < 3) {
+     * mWarmupFixesIgnored++;
+     * Log.d(TAG, "Warm-up phase: ignoring fix #" + mWarmupFixesIgnored);
+     * return;
+     * }
+     * } else if (location.getAccuracy() > 100.0f) {
+     * // General outlier rejection for non-stolen modes
+     * return;
+     * }
+     * 
+     * // ── Is this better than our last fix? ─────────────────────
+     * boolean isBetterFix = (location.getAccuracy() < mLastAccuracy)
+     * || (System.currentTimeMillis() - mLastFixTimeMs > mCurrentIntervalMs);
+     * 
+     * if (!isBetterFix && mCurrentMode != Mode.STOLEN)
+     * return;
+     * 
+     * // ── Apply Kalman Filter ───────────────────────────────────
+     * mKalman.process(location.getLatitude(), location.getLongitude(),
+     * location.getAccuracy(), location.getTime());
+     * 
+     * // ── Update cache ──────────────────────────────────────────
+     * mLastLatitude = mKalman.getLat();
+     * mLastLongitude = mKalman.getLng();
+     * mLastAccuracy = mKalman.getAccuracy();
+     * mLastFixTimeMs = System.currentTimeMillis();
+     * mLastSpeed = location.hasSpeed() ? location.getSpeed() : 0;
+     * mLastBearing = location.hasBearing() ? location.getBearing() : 0;
+     * mLastAltitude = location.hasAltitude() ? location.getAltitude() : 0;
+     * 
+     * Log.d(TAG, String.format("[%s] Fix: %.6f, %.6f (±%.0fm) sats=%d",
+     * source, mLastLatitude, mLastLongitude, mLastAccuracy, mSatelliteCount));
+     * 
+     * // ── Publish based on mode ─────────────────────────────────
+     * switch (mCurrentMode) {
+     * case STOLEN:
+     * // Publish EVERY fix immediately
+     * publishLocation();
+     * break;
+     * 
+     * case STEALTH:
+     * // Batch for later
+     * batchLocation();
+     * break;
+     * 
+     * case PASSIVE:
+     * // Only publish if significant displacement
+     * if (isSignificantDisplacement(location)) {
+     * publishLocation();
+     * }
+     * break;
+     * }
+     * }
+     * 
+     * // ═════════════════════════════════════════════════════════════
+     * // MQTT PUBLISHING
+     * // ═════════════════════════════════════════════════════════════
+     * 
+     * /**
      * Publish current location to MQTT broker.
      * Falls back to SMS if MQTT is unreachable.
      */

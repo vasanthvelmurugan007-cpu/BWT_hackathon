@@ -11,6 +11,8 @@ const clients = new Map(); // ws -> subscribedIMEIHashHex
 
 console.log(`[C2 Backend] WebSocket Server starting on ws://localhost:${WS_PORT}`);
 
+const activeSimulations = new Map();
+
 wss.on('connection', (ws) => {
     console.log('[WS] Web Dashboard Connected');
 
@@ -28,8 +30,38 @@ wss.on('connection', (ws) => {
                 clients.set(ws, hashHex);
                 console.log(`[WS] Subscribed to IMEI: ${data.imei.slice(0, 4)}*** (Hash: ${hashHex.slice(0, 16)}...)`);
                 ws.send(JSON.stringify({ status: 'subscribed', hashHex: hashHex }));
+
+                // Hackathon Magic: Automatically spin up a mock GPS stream for this EXACT IMEI!
+                if (activeSimulations.has(ws)) clearInterval(activeSimulations.get(ws));
+
+                let lat = 12.9716 + (Math.random() - 0.5) * 0.05;
+                let lon = 77.5946 + (Math.random() - 0.5) * 0.05;
+                let battery = 85;
+
+                const simInterval = setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        lat += (Math.random() - 0.5) * 0.002;
+                        lon += (Math.random() - 0.5) * 0.002;
+                        battery = Math.max(1, battery - (Math.random() > 0.8 ? 1 : 0));
+
+                        ws.send(JSON.stringify({
+                            type: 'telemetry',
+                            lat: lat,
+                            lng: lon,
+                            battery: battery,
+                            cellId: 4092,
+                            timestamp: Date.now()
+                        }));
+                    }
+                }, 2000);
+                activeSimulations.set(ws, simInterval);
+
             } else if (data.action === 'unsubscribe') {
                 clients.delete(ws);
+                if (activeSimulations.has(ws)) {
+                    clearInterval(activeSimulations.get(ws));
+                    activeSimulations.delete(ws);
+                }
             }
         } catch (e) {
             console.error('[WS] Erroneous message:', e.message);
@@ -38,10 +70,13 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         clients.delete(ws);
+        if (activeSimulations.has(ws)) {
+            clearInterval(activeSimulations.get(ws));
+            activeSimulations.delete(ws);
+        }
         console.log('[WS] Dashboard Disconnected');
     });
 });
-
 
 // Set up UDP server
 const udpServer = dgram.createSocket('udp4');
