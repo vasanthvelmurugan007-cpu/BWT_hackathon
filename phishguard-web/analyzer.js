@@ -3,134 +3,61 @@
  * Full phishing + financial fraud analyzer logic
  */
 
-const KEYWORDS = [
-    'urgent', 'verify now', 'kyc', 'otp', 'account blocked', 'click here',
-    'limited time', 'winner', 'loan', 'refund', 'password', 'bank', 'netbanking',
-    'ifsc', 'pan', 'aadhaar', 'pan update', 'kyc update', 'bank otp', 'sim swap',
-    'income tax', 'package delivery', 'courier', 'amazon', 'flipkart',
-    'wallet freeze', 'account suspended', 'verify account', 'prize', 'congratulations',
-    'fake upi', 'upi blocked', 'blocked immediately', 'free gift', 'claim now'
+const PHISHING_RULES = [
+    { regex: /urgent|immediate action|expires? (today|now|soon)|last chance/i, label: 'Urgency Trigger', score: 20 },
+    { regex: /account.{0,20}(suspended|blocked|frozen|deactivated)/i, label: 'Account Threat', score: 30 },
+    { regex: /\b(sbi|hdfc|icici|axis bank|pnb|kotak|paytm|phonepe|gpay|google pay)\b/i, label: 'Bank Impersonation', score: 25 },
+    { regex: /kyc.{0,30}(update|expir|pending|incomplete|verif)/i, label: 'KYC Scam', score: 35 },
+    { regex: /\botp\b.{0,30}(share|send|give|provide|enter|bata|de\s)/i, label: 'OTP Request', score: 40 },
+    { regex: /\b(bit\.ly|tinyurl\.com|t\.co|rb\.gy|cutt\.ly|goo\.gl|short\.gy)\b/i, label: 'Shortened URL', score: 25 },
+    { regex: /(won|winner|selected|eligible).{0,40}(prize|reward|cashback|lottery|lucky draw)/i, label: 'Prize Scam', score: 35 },
+    { regex: /upi.{0,30}(collect|request).{0,30}(approve|accept|click|tap)/i, label: 'UPI Collect Fraud', score: 40 },
+    { regex: /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/, label: 'IP Address URL', score: 30 },
+    { regex: /(sbi|hdfc|icici|paytm|npci|uidai|aadhaar).{0,10}\.(xyz|tk|ml|ga|cf|gq|top|club|buzz)/i, label: 'Lookalike Domain', score: 45 },
+    { regex: /खाता.{0,10}(बंद|ब्लॉक|फ्रीज)/, label: 'Hindi Account Threat', score: 30 },
+    { regex: /ओटीपी.{0,10}(बताएं|शेयर|दें|दे)/, label: 'Hindi OTP Request', score: 40 },
+    { regex: /केवाईसी.{0,10}(अपडेट|वेरिफिकेशन|करें)/, label: 'Hindi KYC Scam', score: 35 },
+    { regex: /(income tax|trai|rbi|sebi|npci|govt).{0,50}(notice|penalty|fine|arrest|action)/i, label: 'Govt Impersonation', score: 35 },
 ];
 
-const SHORTENERS = [
-    'bit.ly', 'tinyurl', 't.co', 'goo.gl', 'ow.ly', 'cutt.ly', 'is.gd',
-    'rebrand.ly', 'tiny.cc', 'shorturl.at', 'rb.gy', 'yourls'
-];
+function analyzePhishing(text) {
+    let score = 0;
+    const findings = [];
+    PHISHING_RULES.forEach(rule => {
+        if (rule.regex.test(text)) {
+            score += rule.score;
+            findings.push({ label: rule.label, score: rule.score });
+        }
+    });
+    score = Math.min(score, 100);
+    const riskLevel = score >= 70 ? 'CRITICAL' : score >= 40 ? 'HIGH' : score >= 20 ? 'MEDIUM' : 'LOW';
 
-const BANKS = [
-    'hdfc', 'icici', 'sbi', 'axis', 'kotak', 'bank of baroda', 'canara',
-    'indusind', 'idfc', 'union bank', 'yes bank', 'pnb', 'boi', 'bob',
-    'allahabad', 'uco', 'andhra', 'karnataka'
-];
+    // Mapping added to preserve backwards UI compatibility
+    const uiLevel = riskLevel === 'CRITICAL' ? 'High' : riskLevel === 'HIGH' ? 'High' : riskLevel === 'MEDIUM' ? 'Medium' : 'Low';
 
-const SUSPICIOUS_DOMAINS = [
-    'sbi-reward', 'hdfc-verify', 'icici-update', 'paytm-kyc', 'upi-block',
-    'bank-alert', 'secure-verify', 'account-verify', 'kyc-update', 'rbl-secure',
-    'reward-claim', 'prize-india', 'income-tax-refund'
-];
-
-const HINDI_MAP = {
-    'High risk of phishing detected.': 'उच्च जोखिम की फ़िशिंग पाई गई.',
-    'Medium risk indicators found.': 'मध्यम जोखिम के संकेत मिले.',
-    'Low risk — likely safe.': 'कम जोखिम — संभवतः सुरक्षित.',
-    'Reasons:': 'कारण:',
-    'Keyword:': 'कीवर्ड:',
-    'Short link:': 'शॉर्ट लिंक:',
-    'Bank mention:': 'बैंक उल्लेख:',
-    'Links detected:': 'लिंक पाए गए:',
-    'Sensitive info requested': 'संवेदनशील जानकारी मांगी गई',
-    'Payment collect request': 'भुगतान कलेक्ट अनुरोध',
-    'Amount mentioned': 'राशि उल्लेखित है',
-    'Suspicious domain pattern': 'संदिग्ध डोमेन पैटर्न',
-    'No common phishing patterns found.': 'कोई सामान्य फ़िशिंग पैटर्न नहीं मिला.'
-};
-
-function translateHindi(text) {
-    let t = text;
-    for (const [en, hi] of Object.entries(HINDI_MAP)) {
-        t = t.replaceAll(en, hi);
-    }
-    return t;
+    return {
+        isPhishing: score >= 40,
+        riskScore: score,
+        riskLevel,
+        findings,
+        summary: score >= 40
+            ? `⚠️ ${findings.length} threat indicators detected. Do NOT click links or share any information.`
+            : score >= 20
+                ? `⚡ Suspicious patterns found. Exercise caution.`
+                : `✅ No significant phishing indicators found.`,
+        score: score,
+        level: uiLevel,
+        reasons: findings.map(f => f.label),
+        explanation: score >= 40
+            ? `⚠️ ${findings.length} threat indicators detected. Do NOT click links or share any information.`
+            : score >= 20
+                ? `⚡ Suspicious patterns found. Exercise caution.`
+                : `✅ No significant phishing indicators found.`,
+        explanationHi: score >= 40 ? `⚠️ उच्च जोखिम की फ़िशिंग पाई गई। कोई लिंक न खोलें।` : `✅ सुरक्षित`
+    };
 }
 
-function buildExplanation(level, reasons) {
-    const prefix = level === 'High'
-        ? 'High risk of phishing detected.'
-        : level === 'Medium'
-            ? 'Medium risk indicators found.'
-            : 'Low risk — likely safe.';
-    const detail = reasons.length === 0
-        ? 'No common phishing patterns found.'
-        : 'Reasons: ' + reasons.join(', ') + '.';
-    return `${prefix} ${detail}`;
-}
-
-/**
- * Main phishing analysis — port of PhishingAnalyzer.analyzeRules()
- */
-function analyzePhishingText(text) {
-    const lower = text.toLowerCase();
-    let hits = 0;
-    const reasons = [];
-
-    for (const k of KEYWORDS) {
-        if (lower.includes(k)) {
-            hits += 2;
-            reasons.push(`Keyword: "${k}"`);
-        }
-    }
-
-    for (const s of SHORTENERS) {
-        if (lower.includes(s)) {
-            hits += 3;
-            reasons.push(`Short link: ${s}`);
-        }
-    }
-
-    for (const b of BANKS) {
-        if (lower.includes(b)) {
-            hits += 1;
-            reasons.push(`Bank mention: ${b.toUpperCase()}`);
-        }
-    }
-
-    for (const d of SUSPICIOUS_DOMAINS) {
-        if (lower.includes(d)) {
-            hits += 4;
-            reasons.push(`Suspicious domain pattern`);
-        }
-    }
-
-    const urlPattern = /(https?:\/\/|www\.)([\w\-\.]+)\.[a-z]{2,}/gi;
-    const urls = [...text.matchAll(urlPattern)];
-    if (urls.length > 0) {
-        hits += urls.length;
-        reasons.push(`Links detected: ${urls.length}`);
-    }
-
-    if (/(otp|password|pin|kyc|verify)/i.test(lower)) {
-        hits += 2;
-        reasons.push('Sensitive info requested');
-    }
-
-    if (/(collect request|payment request|upi collect)/i.test(lower)) {
-        hits += 2;
-        reasons.push('Payment collect request');
-    }
-
-    const amtMatches = [...lower.matchAll(/(rs\.?\s?\d+[\,\d]*|inr\s?\d+[\,\d]*)/gi)];
-    if (amtMatches.length > 0) {
-        hits += Math.min(3, amtMatches.length);
-        reasons.push('Amount mentioned');
-    }
-
-    const score = Math.min(100, hits * 6 + (urls.length > 0 ? 8 : 0));
-    const level = score >= 70 ? 'High' : score >= 40 ? 'Medium' : 'Low';
-    const explanation = buildExplanation(level, reasons);
-    const explanationHi = translateHindi(explanation);
-
-    return { score, level, reasons, explanation, explanationHi };
-}
+function analyzePhishingText(text) { return analyzePhishing(text); }
 
 /**
  * Financial fraud analysis — port of FinancialFraudScreen._analyze()

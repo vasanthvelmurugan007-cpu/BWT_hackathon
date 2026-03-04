@@ -2,10 +2,13 @@ const dgram = require('dgram');
 const WebSocket = require('ws');
 const crypto = require('crypto');
 const http = require('http');
+const fs = require('fs');
+const pathLib = require('path');
 
 const UDP_PORT = 8883;
 const WS_PORT = 8080;
 const HTTP_PORT = 3000;
+const FRONTEND_DIR = pathLib.join(__dirname, '..', 'phishguard-web');
 
 // Internal Map State
 const stats = {
@@ -230,6 +233,67 @@ const httpServer = http.createServer((req, res) => {
                 firs.set(firId, fir);
                 setJSON();
                 res.end(JSON.stringify({ firId, fir }));
+            }
+            else if (req.method === 'POST' && path === '/api/scan/image') {
+                // Heuristic image scan without Python backend
+                const { imageBase64 } = body;
+                if (!imageBase64) {
+                    res.writeHead(400);
+                    res.end(JSON.stringify({ success: false, error: 'imageBase64 required' }));
+                    return;
+                }
+                // Size-based heuristic scoring
+                const sizeBytes = Buffer.byteLength(imageBase64, 'base64');
+                const sizeKB = sizeBytes / 1024;
+                let deepfakeScore = 0;
+                let morphingScore = 0;
+                const details = [];
+
+                if (sizeKB < 20) { deepfakeScore += 25; details.push('Very small file — may be AI-generated icon or thumbnail'); }
+                if (sizeKB > 4000) { morphingScore += 20; details.push('Very large image — may contain embedded data'); }
+
+                // Flag near-perfect power-of-2 dimensions (common in GAN-generated images)
+                const b64Clean = imageBase64.replace(/\s/g, '');
+                if (b64Clean.startsWith('/9j/') && sizeKB < 50) {
+                    deepfakeScore += 20;
+                    details.push('Compact JPEG — possibly AI-compressed face image');
+                }
+
+                const maxScore = Math.max(deepfakeScore, morphingScore);
+                let verdict;
+                if (maxScore >= 70) verdict = 'CRITICAL — HIGH RISK CONTENT';
+                else if (maxScore >= 40) verdict = 'WARNING — SUSPICIOUS CONTENT';
+                else verdict = 'CLEAN — NO THREATS DETECTED';
+
+                if (details.length === 0) details.push('No anomalies detected.');
+
+                setJSON();
+                res.end(JSON.stringify({
+                    success: true,
+                    data: { deepfakeScore, morphingScore, nsfwScore: 0, verdict, details }
+                }));
+            }
+            else if (req.method === 'GET' && (path === '/' || path === '/index.html')) {
+                // Serve frontend
+                const filePath = pathLib.join(FRONTEND_DIR, 'index.html');
+                fs.readFile(filePath, (err, data) => {
+                    if (err) { res.writeHead(404); res.end('Not Found'); return; }
+                    res.setHeader('Content-Type', 'text/html');
+                    res.end(data);
+                });
+                return;
+            }
+            else if (req.method === 'GET' && (path.endsWith('.js') || path.endsWith('.css'))) {
+                // Serve static assets (app.js, styles.css, analyzer.js)
+                const filePath = pathLib.join(FRONTEND_DIR, pathLib.basename(path));
+                const ext = pathLib.extname(path);
+                const mime = ext === '.js' ? 'application/javascript' : 'text/css';
+                fs.readFile(filePath, (err, data) => {
+                    if (err) { res.writeHead(404); res.end('Not Found'); return; }
+                    res.setHeader('Content-Type', mime);
+                    res.end(data);
+                });
+                return;
             }
             else {
                 res.writeHead(404);

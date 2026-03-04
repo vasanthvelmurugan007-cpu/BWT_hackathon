@@ -1,0 +1,228 @@
+================================================================
+  PHISHGUARD AI — COMPLETE FEATURE SUMMARY
+  Generated: 2026-03-04
+================================================================
+
+HOW TO START
+------------
+  cd phishguard-backend
+  node server.js
+  Then open: http://localhost:3000/
+
+
+BACKEND SERVER (server.js — Node.js)
+-------------------------------------
+  Service           Port    Status
+  ─────────────────────────────────────
+  HTTP / Frontend   3000    LIVE — Serves full dashboard
+  WebSocket (C2)    8080    LIVE — Live bidirectional C2 connection
+  UDP Telemetry     8883    LIVE — Listens for Android device packets
+
+
+================================================================
+  MODULE 1 — PHISHING & SCAM DETECTOR
+================================================================
+- Paste any SMS, WhatsApp message, or email text
+- 16-rule regex scoring engine (0–100 cumulative score)
+
+  Rules covered:
+    • Urgency triggers (expires today, last chance, immediate action)
+    • Account threat (suspended, blocked, frozen, deactivated)
+    • Bank impersonation (SBI, HDFC, ICICI, Paytm, PhonePe, GPay)
+    • KYC scam detection
+    • OTP request patterns
+    • Shortened URL detection (bit.ly, tinyurl, rb.gy, etc.)
+    • Prize / lottery / cashback scams
+    • UPI collect fraud (approve/accept/click patterns)
+    • IP address embedded in URL
+    • Lookalike domains (bank names + .xyz/.tk/.ml/.ga etc.)
+    • Hindi: खाता बंद / ब्लॉक / फ्रीज
+    • Hindi: ओटीपी बताएं / शेयर / दें
+    • Hindi: केवाईसी अपडेट / वेरिफिकेशन
+    • Government impersonation (RBI, TRAI, SEBI, Income Tax)
+    • Advance fee fraud (send Rs. X → get/win/earn)
+    • Verification scam (verify/confirm account immediately)
+
+  Risk Output: LOW / MEDIUM / HIGH / CRITICAL
+  Languages: English explanation + Hindi explanation
+  Backend route: POST /api/scan/phishing
+
+
+================================================================
+  MODULE 2 — STOLEN PHONE TRACKER + AUTO-FIR
+================================================================
+- Enter any 15-digit IMEI number → live GPS tracking
+- Demo IMEI 351756051523999 auto-simulates live movement
+  around Bengaluru at 500ms intervals (always available)
+- Real-time Leaflet.js map with animated LERP movement
+- OSRM Snap-to-Road (2-second timeout, silent fallback)
+- Demo banner indicator for demo device
+
+Battery Bar with 3 states:
+    • Green  (>50%)  — battery-good
+    • Orange (≤50%)  — battery-low
+    • Red    (≤20%)  — battery-critical (pulsing animation)
+
+FIR PDF Generator:
+    • Fill: owner name, phone, IMEI
+    • Auto-fills GPS coordinates from live tracking
+    • First POSTs to /api/fir/generate (backend stores record)
+    • Falls back to local jsPDF generation if backend fails
+    • PDF includes: FIR ID, complainant details, device details,
+      last known GPS + Google Maps link, network info, declaration
+    • Filename: FIR_<IMEI>_<timestamp>.pdf
+
+
+================================================================
+  MODULE 3 — FINANCIAL FRAUD & UPI PROTECTION
+================================================================
+- UPI ID trust checker
+- Hardcoded known-bad list: paytm.support@paytm, refund.sbi@okaxis
+- Hardcoded verified list: pm.kisan@gov, merchant@ybl
+- Pattern checks:
+    • Suspicious keywords (support, refund, prize, lottery)
+    • Unknown VPA handles
+    • Long digit strings (bot-generated IDs)
+- Returns: trust verdict, risk type, report count, flags
+- Backend route: POST /api/scan/upi
+
+
+================================================================
+  MODULE 4 — DEEPFAKE & IMAGE ABUSE GUARD
+================================================================
+- Upload any JPG / PNG / WEBP image (max 10MB)
+- No API key required — uses backend heuristics
+- Analysis flow (Node.js backend):
+    • File size check (very small = possible AI-generated)
+    • JPEG header detection (compact AI-compressed face images)
+    • Large file check (possible embedded payload)
+- Optional Python backend (server.py) for advanced analysis:
+    • DeepFace emotion / gender analysis
+    • NudeNet NSFW classification
+- Verdict: CLEAN / WARNING — SUSPICIOUS / CRITICAL — HIGH RISK
+- Backend route: POST /api/scan/image
+
+
+================================================================
+  MODULE 5 — SIM-SWAP RISK DETECTOR
+================================================================
+(Located within the Financial Fraud module)
+
+- Interactive 3-question Yes/No questionnaire:
+    Q1: Did your phone suddenly lose all signal?
+    Q2: Did you receive unexpected OTPs you never requested?
+    Q3: Did your carrier send an unrecognized SIM change SMS?
+
+- Risk calculation by Yes count:
+    0 Yes → LOW    — Monitor for unusual activity
+    1 Yes → MEDIUM — Contact carrier, check email alerts
+    2 Yes → HIGH   — Call carrier immediately, alert bank
+    3 Yes → CRITICAL — Call 1930, freeze all bank accounts NOW
+
+
+================================================================
+  MODULE 6 — KILL SWITCH (Financial Fraud module)
+================================================================
+- Hold-to-activate SVG countdown ring button (3 seconds hold)
+- Red SVG ring animates to show hold progress
+- On completion:
+    • Button turns green with ACCOUNTS FROZEN label
+    • Toast notification sent
+    • Activity logged in dashboard terminal
+    • Button permanently disabled (prevents accidental re-trigger)
+- Simulates: freeze all linked UPI IDs and bank accounts
+
+
+================================================================
+  MODULE 7 — SOS & WOMEN'S SAFETY
+================================================================
+- Emergency Contacts:
+    • Add/delete contacts with name + phone
+    • Persistent via localStorage (survives page refresh)
+    • Saved under key: phishguard_contacts
+- One-tap SOS trigger with visual alert state
+- National helplines listed: 112 (Police), 1091 (Women),
+  1930 (Cyber Crime), 181 (Women Helpline)
+
+
+================================================================
+  DASHBOARD FEATURES
+================================================================
+- Live scan counter with animated count-up (smooth easing)
+- Threats Blocked counter with animated count-up
+- Dashboard Terminal Log:
+    • Appends simulated cybersecurity events every 3 seconds
+    • Auto-rotates (max 30 lines)
+    • Fade-in animation per line
+    • Terminal monospace style
+- National Cyber Stats section (UPI fraud, cyber crime data)
+- Live clock in header (updates every second)
+- C2 connection status indicator (green = connected)
+
+
+================================================================
+  REAL-TIME WEBSOCKET EVENTS
+================================================================
+  Event              Direction             Description
+  ─────────────────────────────────────────────────────────────
+  INIT               Server → Browser      All devices + stats on connect
+  LOCATION_UPDATE    Server → Browser      Live GPS for any tracked device
+  TELEMETRY          Server → Browser      Full telemetry packet
+  SUBSCRIBE_IMEI     Browser → Server      Subscribe to specific device IMEI
+  DEVICE_STATE       Server → Browser      State snapshot of subscribed device
+
+
+================================================================
+  REST API ROUTES
+================================================================
+  Method   Route                    Description
+  ─────────────────────────────────────────────────────────────
+  GET      /                        Serves PhishGuard dashboard HTML
+  GET      /api/stats               Returns scan stats
+  GET      /api/device/:imei        Get device state by IMEI
+  POST     /api/scan/phishing       Phishing text analysis
+  POST     /api/scan/upi            UPI ID trust check
+  POST     /api/scan/image          Image deepfake heuristics
+  POST     /api/simulate/location   Manually push a GPS location update
+  POST     /api/fir/generate        Create + store FIR record in memory
+
+
+================================================================
+  PYTHON BACKEND (server.py — Optional / Advanced)
+================================================================
+  Framework: FastAPI + Uvicorn
+  Port: 3000 (same port — use INSTEAD of Node.js server)
+
+  Extra capabilities over Node.js backend:
+    • DeepFace facial emotion + gender analysis for deepfakes
+    • NudeNet NSFW image classification
+    • ReportLab PDF generation on server side
+    • Full phishing regex engine in Python
+
+  To run:
+    cd phishguard-backend
+    pip install -r requirements.txt
+    python server.py
+
+
+================================================================
+  PROJECT FILE STRUCTURE
+================================================================
+  phishguard/
+  ├── phishguard-web/
+  │   ├── index.html       Main dashboard UI
+  │   ├── app.js           All JS logic, modules, WebSocket, APIs
+  │   ├── analyzer.js      Phishing + fraud analysis engine (client-side)
+  │   └── styles.css       Full custom dark UI stylesheet
+  │
+  ├── phishguard-backend/
+  │   ├── server.js        Node.js C2 + HTTP + WebSocket + UDP server
+  │   ├── server.py        Python FastAPI server (optional/advanced)
+  │   └── requirements.txt Python dependencies
+  │
+  └── android-core/        Android Sentinel app (Java)
+      └── ...              GPS tracking, UDP transmitter, stealth mode
+
+================================================================
+  END OF SUMMARY
+================================================================

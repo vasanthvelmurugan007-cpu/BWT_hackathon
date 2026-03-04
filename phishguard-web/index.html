@@ -6,13 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhishGuard AI — India's Cybersecurity Shield</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
+    <!-- OFFLINE BANNER -->
+    <div id="offlineBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:rgba(255,170,0,0.12);border-bottom:1px solid rgba(255,170,0,0.4);
+      color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:12px;
+      padding:7px 16px;text-align:center;">
+        &#9888; C2 Server offline &mdash; running in local analysis mode. Start node server.js to enable live tracking.
+    </div>
     <!-- SIDEBAR NAV -->
     <nav class="sidebar" id="sidebar">
         <div class="brand">
@@ -41,6 +50,15 @@
             <a class="nav-item" data-page="sos" onclick="showPage('sos')">
                 <span class="nav-icon">🚨</span> SOS & Safety
             </a>
+            <a class="nav-item" data-page="digitalArrest" onclick="showPage('digitalArrest')">
+                <span class="nav-icon">👮</span> Digital Arrest
+            </a>
+            <a class="nav-item" data-page="fakeJob" onclick="showPage('fakeJob')">
+                <span class="nav-icon">💼</span> Job Scam Check
+            </a>
+            <a class="nav-item" data-page="misinformation" onclick="showPage('misinformation')">
+                <span class="nav-icon">🗞️</span> Fake News Check
+            </a>
         </div>
         <div class="sidebar-footer">
             <div class="status-dot"></div>
@@ -58,8 +76,8 @@
             </div>
             <div class="topbar-right">
                 <div class="threat-level" id="c2-status" style="margin-right: 15px;">
-                    <span class="pulse" id="c2-dot" style="background:#ef4444"></span> <span id="c2-text">C2
-                        Offline</span>
+                    <span class="pulse" id="c2StatusDot" style="background:#ef4444"></span>
+                    <span id="c2StatusLabel">C2 Offline</span>
                 </div>
                 <div class="threat-level" id="threat-level">
                     <span class="pulse"></span> Scanning...
@@ -81,15 +99,15 @@
                     </div>
                     <div class="hero-stats">
                         <div class="hero-stat">
-                            <div class="stat-num accent" id="scan-count">0</div>
+                            <div class="stat-num accent" id="scanCount">0</div>
                             <div class="stat-label">Scans Today</div>
                         </div>
                         <div class="hero-stat">
-                            <div class="stat-num red" id="blocked-count">0</div>
+                            <div class="stat-num red" id="blockedCount">0</div>
                             <div class="stat-label">Threats Blocked</div>
                         </div>
                         <div class="hero-stat">
-                            <div class="stat-num green">98%</div>
+                            <div class="stat-num green" id="accuracyRate">98%</div>
                             <div class="stat-label">Accuracy Rate</div>
                         </div>
                     </div>
@@ -147,9 +165,10 @@
                 </div>
 
                 <div class="recent-log" id="recent-log">
-                    <h3>🔐 Recent Activity</h3>
+                    <h3>&#128272; Recent Activity</h3>
                     <div class="log-empty">No scans yet. Use the tools above to get started.</div>
                 </div>
+                <div id="terminalLog" class="terminal-log"></div>
             </section>
 
             <!-- PHISHING DETECTOR -->
@@ -206,16 +225,18 @@
                         <!-- LIVE IMEI TELEMETRY TRACKER -->
                         <div class="imei-tracker-card"
                             style="background: rgba(30,41,59,0.5); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
+                            <div id="demoBanner" class="demo-banner" style="display:none"></div>
                             <h3 style="margin-top:0; color: #60a5fa; display:flex; align-items:center; gap:0.5rem;">
                                 <span style="font-size:1.2rem;">📡</span> Live IMEI Telemetry Tracking
                             </h3>
                             <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Enter your stolen
                                 device's 15-digit IMEI number to connect to the AntiGravityCore UDP Socket.</p>
                             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                                <input type="text" id="telemetry-imei" placeholder="Enter IMEI (e.g. 359XXXXXXXXXXXX)"
+                                <input type="text" id="imeiInput" placeholder="Enter IMEI (e.g. 359XXXXXXXXXXXX)"
                                     class="input-field" style="flex: 1;" maxlength="15">
                                 <button class="btn-primary" onclick="startImeiTelemetry()"
                                     id="telemetry-btn">CONNECT</button>
+                                <button class="btn-secondary" id="loadDemoBtn">DEMO</button>
                             </div>
                             <div id="telemetry-log"
                                 style="font-family: monospace; font-size: 0.75rem; background: #0f172a; padding: 0.75rem; border-radius: 6px; color: #10b981; height: 100px; overflow-y: auto; display: none;">
@@ -241,12 +262,29 @@
                                 <span id="lng-display" class="coord-val">77.594600</span>
                             </div>
                             <div class="coord-row">
-                                <span>⏱ Last Update</span>
-                                <span id="last-update" class="coord-val">—</span>
+                                <span>&#8987; Last Seen</span>
+                                <span id="lastSeen" class="coord-val">&mdash;</span>
                             </div>
                             <div class="coord-row">
-                                <span>🔋 Battery</span>
-                                <span id="battery-display" class="coord-val">67%</span>
+                                <span>&#127368; Accuracy</span>
+                                <span id="gpsAccuracy" class="coord-val">&mdash;</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>&#127939; Speed</span>
+                                <span id="deviceSpeed" class="coord-val">&mdash;</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>&#127758; IP</span>
+                                <span id="deviceIp" class="coord-val">&mdash;</span>
+                            </div>
+                            <div class="coord-row">
+                                <span>&#128267; Battery</span>
+                                <div
+                                    style="flex:1; margin: 0 10px; background: rgba(255,255,255,0.1); border-radius:4px; height: 10px; overflow: hidden;">
+                                    <div id="batteryBar" style="width: 67%; height: 100%;"
+                                        class="battery-fill battery-good"></div>
+                                </div>
+                                <span id="batteryLabel" class="coord-val">67%</span>
                             </div>
                         </div>
 
@@ -277,6 +315,19 @@
                 </div>
                 <div class="tool-layout">
                     <div class="tool-input-panel">
+                        <div class="api-key-row" style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+                            <input type="password" id="anthropicKeyInput"
+                                placeholder="Paste Anthropic API key (sk-ant-...) to enable AI analysis"
+                                style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:6px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:12px;" />
+                            <button id="saveApiKeyBtn"
+                                style="padding:8px 16px;background:rgba(0,255,136,0.15);border:1px solid #00ff88;color:#00ff88;border-radius:6px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;">
+                                ACTIVATE
+                            </button>
+                        </div>
+                        <div id="apiKeyStatus"
+                            style="font-size:11px;color:#555;margin-bottom:12px;font-family:'Share Tech Mono',monospace;">
+                            &#9898; AI analysis inactive &mdash; paste API key above to enable
+                        </div>
                         <div class="upload-zone" id="upload-zone"
                             onclick="document.getElementById('image-input').click()">
                             <div class="upload-icon">🖼️</div>
@@ -288,8 +339,8 @@
                         <div id="image-preview-wrap" style="display:none">
                             <img id="image-preview" class="image-preview" alt="Preview">
                             <div class="btn-row">
-                                <button class="btn-primary" onclick="analyzeImage()">🔍 Scan for Deepfake</button>
-                                <button class="btn-secondary" onclick="clearImage()">✕ Clear</button>
+                                <button class="btn-primary" id="analyzeImageBtn">&#128269; Scan for Deepfake</button>
+                                <button class="btn-secondary" onclick="clearImage()">&#10005; Clear</button>
                             </div>
                         </div>
                         <div class="deepfake-info-cards">
@@ -309,9 +360,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tool-result-panel" id="deepfake-result">
+                    <div class="tool-result-panel" id="deepfakeResults">
                         <div class="result-empty">
-                            <div class="empty-icon">🔍</div>
+                            <div class="empty-icon">&#128269;</div>
                             <p>Upload an image to begin analysis</p>
                             <p class="hint">94% detection accuracy on known deepfake datasets</p>
                         </div>
@@ -357,14 +408,33 @@
                         </div>
                     </div>
                 </div>
+                <div class="sim-swap-section"
+                    style="margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 12px;">
+                    <h3>📱 SIM Swap Risk Checker</h3>
+                    <div id="simSwapContainer"></div>
+                </div>
                 <div class="kill-switch-section">
                     <div class="kill-switch-card">
                         <div>
                             <h3>⚡ Kill Switch</h3>
                             <p>Freeze all linked UPI IDs and bank accounts instantly</p>
                         </div>
-                        <button class="btn-kill" id="kill-btn" onclick="activateKillSwitch()">ACTIVATE KILL
-                            SWITCH</button>
+                        <div class="killswitch-wrap" style="position:relative; width:120px; height:120px;">
+                            <svg class="killswitch-ring" viewBox="0 0 120 120"
+                                style="position:absolute; top:0; left:0; pointer-events:none;">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#1a1a2e" stroke-width="8" />
+                                <circle id="killRingProgress" cx="60" cy="60" r="54" fill="none" stroke="#ff3366"
+                                    stroke-width="8" stroke-dasharray="339.3" stroke-dashoffset="339.3"
+                                    stroke-linecap="round" transform="rotate(-90 60 60)" />
+                            </svg>
+                            <button id="killSwitchBtn" class="killswitch-btn btn-kill"
+                                style="width:100%; height:100%; position:relative; z-index:10; border-radius:50%; background:#1e293b; border:none; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                                <span class="kill-icon" style="font-size:24px;">🛑</span>
+                                <span class="kill-label"
+                                    style="font-size:10px; font-weight:bold; margin-top:4px; text-align:center;">HOLD
+                                    TO<br>FREEZE</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -388,11 +458,11 @@
                     <div class="sos-sidebar">
                         <div class="contacts-panel">
                             <h3>👥 Emergency Contacts</h3>
-                            <div class="contact-list" id="contact-list"></div>
+                            <div class="contact-list" id="contactsList"></div>
                             <div class="add-contact-form">
-                                <input type="text" id="contact-name" placeholder="Contact Name" class="input-field">
-                                <input type="text" id="contact-phone" placeholder="Phone Number" class="input-field">
-                                <button class="btn-primary" onclick="addContact()">+ Add Contact</button>
+                                <input type="text" id="contactName" placeholder="Contact Name" class="input-field">
+                                <input type="text" id="contactPhone" placeholder="Phone Number" class="input-field">
+                                <button class="btn-primary" id="addContactBtn">+ Add Contact</button>
                             </div>
                         </div>
                         <div class="helplines-panel">
@@ -406,6 +476,185 @@
                                 <div class="helpline-item"><span>🆘 Emergency</span><strong>112</strong></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 8: DIGITAL ARREST SCAM DETECTOR -->
+            <section id="page-digitalArrest" class="page">
+                <div class="section-header">
+                    <h2>🚔 Digital Arrest Scam Detector</h2>
+                    <p>India's #1 cyber crime in 2025–26. Scammers impersonate CBI, ED, NCB, or Police and claim you are
+                        under "digital arrest" — forcing you to stay on video call while transferring money.</p>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-chip">📊 ₹1,200 Cr lost in 2024</div>
+                    <div class="stat-chip">📊 70,000+ cases in 2024</div>
+                    <div class="stat-chip">📊 Avg victim loss: ₹2.1 Lakh</div>
+                    <div class="stat-chip">📊 PM Modi warned nationally Oct 2024</div>
+                </div>
+                <div class="new-module-grid">
+                    <div class="new-module-card">
+                        <h3 class="module-card-title">Analyze Suspicious Call / Message</h3>
+                        <p style="font-size:13px;color:#888;margin-bottom:12px;">Paste the exact words the caller said,
+                            a WhatsApp message, or an email threatening arrest.</p>
+                        <div class="tab-row">
+                            <button class="tab-btn active" onclick="setDATab('call')" id="daTabCall">📞 Call
+                                Script</button>
+                            <button class="tab-btn" onclick="setDATab('whatsapp')" id="daTabWhatsapp">💬
+                                WhatsApp</button>
+                            <button class="tab-btn" onclick="setDATab('email')" id="daTabEmail">📧 Email</button>
+                            <button class="tab-btn" onclick="loadDAExample()" id="daExampleBtn">📋 Example</button>
+                        </div>
+                        <textarea id="daInput" rows="6"
+                            placeholder="Paste the threatening message or call script here..."></textarea>
+                        <div class="btn-row" style="margin-top:12px;">
+                            <button id="daAnalyzeBtn" class="btn-primary" onclick="analyzeDigitalArrest()">🔍 Analyze
+                                Now</button>
+                            <button class="btn-secondary"
+                                onclick="document.getElementById('daInput').value=''">Clear</button>
+                        </div>
+                    </div>
+                    <div class="new-module-card">
+                        <h3 class="module-card-title">How Digital Arrest Scams Work</h3>
+                        <div class="info-steps">
+                            <div class="info-step"><span class="step-num">1</span><span>Caller claims to be CBI / ED /
+                                    NCB / Police / TRAI</span></div>
+                            <div class="info-step"><span class="step-num">2</span><span>Says your Aadhaar/SIM/bank
+                                    account linked to crime</span></div>
+                            <div class="info-step"><span class="step-num">3</span><span>Demands you stay on video call —
+                                    "digital arrest"</span></div>
+                            <div class="info-step"><span class="step-num">4</span><span>Pressures you to transfer money
+                                    to "clear your name"</span></div>
+                            <div class="info-step danger-step"><span class="step-num">!</span><span>REMEMBER: No real
+                                    agency conducts arrests over video call</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="daResults" class="results-panel" style="display:none;margin-top:20px;"></div>
+                <div class="new-module-card" style="margin-top:20px;">
+                    <h3 class="module-card-title">🛡️ What To Do If You Receive This Call</h3>
+                    <div class="action-grid">
+                        <div class="action-card safe">✅ Hang up immediately</div>
+                        <div class="action-card safe">✅ Do NOT transfer any money</div>
+                        <div class="action-card safe">✅ Do NOT share OTP or bank details</div>
+                        <div class="action-card safe">✅ Call 1930 (Cyber Crime Helpline)</div>
+                        <div class="action-card safe">✅ Report at cybercrime.gov.in</div>
+                        <div class="action-card danger">❌ No agency arrests via video call</div>
+                        <div class="action-card danger">❌ No court sends WhatsApp summons</div>
+                        <div class="action-card danger">❌ No officer asks for money to "clear" you</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 9: FAKE JOB OFFER DETECTOR -->
+            <section id="page-fakeJob" class="page">
+                <div class="section-header">
+                    <h2>💼 Fake Job Offer Detector</h2>
+                    <p>45 million unemployed Indians are targeted by fake job scams daily on WhatsApp, Telegram, and
+                        fake portals. They collect registration fees, training fees, or kit deposits — then vanish.</p>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-chip">📊 45M unemployed youth targeted</div>
+                    <div class="stat-chip">📊 Avg loss per victim: ₹15,000</div>
+                    <div class="stat-chip">📊 Top platforms: WhatsApp, Telegram</div>
+                    <div class="stat-chip">📊 2.1 Lakh job scam complaints (2024)</div>
+                </div>
+                <div class="new-module-grid" style="grid-template-columns:1fr;">
+                    <div class="new-module-card">
+                        <h3 class="module-card-title">Paste Job Offer or Message</h3>
+                        <div class="tab-row">
+                            <button class="tab-btn active" onclick="setJobTab('message')" id="jobTabMessage">💬 WhatsApp
+                                Message</button>
+                            <button class="tab-btn" onclick="setJobTab('posting')" id="jobTabPosting">📄 Job
+                                Posting</button>
+                            <button class="tab-btn" onclick="setJobTab('email')" id="jobTabEmail">📧 Email
+                                Offer</button>
+                            <button class="tab-btn" onclick="loadJobExample()" id="jobExampleBtn">📋 Example</button>
+                        </div>
+                        <textarea id="jobInput" rows="7"
+                            placeholder="Paste the job offer message, posting, or email here..."></textarea>
+                        <div style="margin-top:14px;">
+                            <label
+                                style="font-family:'Rajdhani',sans-serif;font-size:12px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px;">OPTIONAL
+                                — Company Verification</label>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <input type="text" id="companyNameInput" placeholder="Company name (optional)"
+                                    class="input-field" style="flex:1;min-width:160px;">
+                                <input type="text" id="companyWebsite" placeholder="Website URL (optional)"
+                                    class="input-field" style="flex:1;min-width:160px;">
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top:14px;">
+                            <button id="jobAnalyzeBtn" class="btn-primary" onclick="analyzeFakeJob()">🔍 Check This
+                                Job</button>
+                            <button class="btn-secondary"
+                                onclick="document.getElementById('jobInput').value=''">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="jobResults" class="results-panel" style="display:none;margin-top:20px;"></div>
+                <div class="new-module-card" style="margin-top:20px;">
+                    <h3 class="module-card-title">🚩 Classic Fake Job Red Flags</h3>
+                    <div class="action-grid">
+                        <div class="action-card danger">❌ Asks for registration/kit/training fee</div>
+                        <div class="action-card danger">❌ Salary too high for zero experience</div>
+                        <div class="action-card danger">❌ Interview on WhatsApp or Telegram only</div>
+                        <div class="action-card danger">❌ No office address or landline number</div>
+                        <div class="action-card danger">❌ Offer letter before any interview</div>
+                        <div class="action-card danger">❌ Gmail/Yahoo address instead of company email</div>
+                        <div class="action-card danger">❌ Work from home with guaranteed ₹50k/day</div>
+                        <div class="action-card danger">❌ Asks for Aadhaar/PAN before joining</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 10: MISINFORMATION & FAKE FORWARD DETECTOR -->
+            <section id="page-misinformation" class="page">
+                <div class="section-header">
+                    <h2>📰 Misinformation &amp; Fake Forward Detector</h2>
+                    <p>WhatsApp forwards spread fake news, doctored quotes, false government schemes, and health
+                        misinformation to millions before any fact-check reaches them.</p>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-chip">📊 500M WhatsApp users in India</div>
+                    <div class="stat-chip">📊 23 mob lynchings caused by forwards (2018–23)</div>
+                    <div class="stat-chip">📊 72% Indians can't identify fake news</div>
+                    <div class="stat-chip">📊 1 fake forward reaches 1000 people in 6 hrs</div>
+                </div>
+                <div class="new-module-grid" style="grid-template-columns:1fr;">
+                    <div class="new-module-card">
+                        <h3 class="module-card-title">Paste Suspicious Forward or Claim</h3>
+                        <div class="tab-row">
+                            <button class="tab-btn active" onclick="setMisTab('forward')" id="misTabForward">📱 WhatsApp
+                                Forward</button>
+                            <button class="tab-btn" onclick="setMisTab('news')" id="misTabNews">📰 News Claim</button>
+                            <button class="tab-btn" onclick="setMisTab('scheme')" id="misTabScheme">🏛️ Govt
+                                Scheme</button>
+                            <button class="tab-btn" onclick="loadMisExample()" id="misExampleBtn">📋 Example</button>
+                        </div>
+                        <textarea id="misInput" rows="7"
+                            placeholder="Paste the WhatsApp forward, news claim, or suspicious government scheme message here..."></textarea>
+                        <div class="btn-row" style="margin-top:12px;">
+                            <button id="misAnalyzeBtn" class="btn-primary" onclick="analyzeMisinformation()">🔍 Fact
+                                Check This</button>
+                            <button class="btn-secondary"
+                                onclick="document.getElementById('misInput').value=''">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="misResults" class="results-panel" style="display:none;margin-top:20px;"></div>
+                <div class="new-module-card" style="margin-top:20px;">
+                    <h3 class="module-card-title">📌 How To Spot Fake Forwards</h3>
+                    <div class="action-grid">
+                        <div class="action-card danger">❌ "Forward to 10 people or bad luck"</div>
+                        <div class="action-card danger">❌ No source, no date, no author</div>
+                        <div class="action-card danger">❌ Govt scheme asking for personal details</div>
+                        <div class="action-card danger">❌ "Breaking news" with no media outlet</div>
+                        <div class="action-card danger">❌ Emotional language designed to trigger fear/anger</div>
+                        <div class="action-card danger">❌ Links to .xyz .tk .ml domains</div>
+                        <div class="action-card safe">✅ Verify at pib.gov.in/factcheck</div>
+                        <div class="action-card safe">✅ Check on newschecker.in or boomlive.in</div>
                     </div>
                 </div>
             </section>
