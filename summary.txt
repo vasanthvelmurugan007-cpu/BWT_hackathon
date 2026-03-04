@@ -1,0 +1,20 @@
+PhishGuard AI - Project Summary
+
+1. PhishGuard Web Application (/phishguard-web)
+- Fully functional, single-page web app for core features.
+- Contains: Phishing & Scam Detection, Deepfake & Image Forgery Analysis, Financial Fraud & UPI protection, SOS & Threat tracking.
+- Tech Stack: Vanilla JavaScript, HTML, CSS (Premium dark-mode aesthetic).
+
+2. Sentinel IMEI Persistence & Android Core (/android-core)
+- Robust "Sentinel" anti-theft framework designed to survive factory resets.
+- Deep system integration via Boot receiver and Device Admin policies.
+- Live tracking of stolen devices based on IMEI via UDP-based communication.
+
+3. PhishGuard Backend Server (/phishguard-backend)
+- Node.js Express server acting as the Command and Control (C2) center.
+- Handles incoming UDP telemetry packets from the Sentinel Android simulator.
+- Passes live location data securely to the Web Dashboard.
+
+4. Interactive Pitch Deck (/pitch_deck)
+- High-impact, professional 10-slide pitch deck (React/Vite).
+- Emphasizes India's unique digital threats and PhishGuard's "X-Factors" (Auto-FIR, deepfake analysis, SIM-swap protection).

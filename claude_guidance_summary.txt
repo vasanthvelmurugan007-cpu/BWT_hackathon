@@ -1,0 +1,51 @@
+# PhishGuard AI - Codebase Overview & Guide
+
+Hello! This document summarizes the current state of the "PhishGuard AI" hackathon project. It is intended to help quickly onboard you to the architecture, tech stack, and data flow so we can continue development seamlessly.
+
+## 📁 Repository Structure
+The project is divided into four main directories:
+1. `/phishguard-web` - The Vanilla JS frontend dashboard.
+2. `/phishguard-backend` - The Node.js Command & Control (C2) server.
+3. `/android-core` - A Java-based Android core simulator for stolen phone telemetry.
+4. `/pitch_deck` - A React/Vite app containing the presentation slides.
+
+---
+
+## 🎨 Frontend Summary (`/phishguard-web`)
+*   **Tech Stack:** Pure Vanilla JavaScript, HTML5, CSS3. No framework is used to ensure maximum performance and structural simplicity for the dashboard.
+*   **Styling:** A premium, dark-mode cybersecurity aesthetic using CSS variables, flexbox/grid layout, and subtle glow effects.
+*   **Core Files:**
+    *   `index.html`: Holds the entire UI structure (Sidebar, Dashboard layout, and individual feature sections mapped to specific divs).
+    *   `styles.css`: Contains all styling, animations (e.g., pulsing radar, glow effects), and responsive media queries.
+    *   `app.js` / `analyzer.js`: Handles DOM manipulation, view switching (`showPage()`), and Mock-AI logic for phishing detection, image scanning, and financial fraud.
+*   **Key Integrations:**
+    *   **Leaflet.js:** Used heavily in the "Stolen Phone & Auto-FIR" section to render a real-time tracking map.
+    *   **Native WebSockets (`window.WebSocket`)**: Implemented in `app.js` to connect to the Node backend and listen for live telemetry updates pushed from the Android tracker.
+*   **Current State:** Fully designed, highly interactive, and ready to consume real data.
+
+---
+
+## ⚙️ Backend Summary (`/phishguard-backend`)
+*   **Tech Stack:** Node.js, `dgram` (UDP), `ws` (WebSockets).
+*   **Primary Role:** Acts as a minimal Command & Control (C2) endpoint. It receives high-frequency tracking pings from the Android device and broadcasts them live to the Frontend dashboard.
+*   **Networking Architecture:**
+    *   **UDP socket (Port 5005):** Rapidly receives lightweight payload bursts containing `{ IMEI, latitude, longitude, battery, timestamp }` from the Android simulator (`/android-core`). UDP is used to avoid TCP overhead when bursting telemetry every 500ms.
+    *   **WebSocket Server (Port 8080):** Instantly relays the parsed UDP JSON payloads to connected Web clients (`/phishguard-web`).
+*   **Current State:** The backend logic parses incoming IMEI packets and handles the bridge between the UDP ingest and WebSocket broadcast.
+
+---
+
+## 📡 Data Flow Summary (Stolen Phone Tracking)
+If we need to debug the live tracking feature, this is the expected data flow:
+1.  **The Origin (Android):** `MqttBurstClient.java` inside `/android-core` generates fake location data or grabs real GPS data, creating a JSON payload, and bursts it via UDP.
+2.  **The Ingest (Backend):** Node.js UDP socket receives the buffer, parses it, and checks the IMEI.
+3.  **The Relay (Backend -> Frontend):** Node.js broadcasts the structured JSON object over the WebSocket channel.
+4.  **The Visualization (Frontend):** `app.js` receives the WebSocket message, parses `lat`/`lng`, updates the Leaflet map marker, and modifies the DOM (Battery %, Status) in real-time.
+
+---
+
+## 🚀 Goals & Next Steps
+We are currently focusing on refining the integration and expanding the AI logic for threat detection. When interacting with this codebase:
+- Keep the HTML/CSS structure clean and native.
+- Ensure any added location features account for the WebSocket data pipeline.
+- Maintain the "Premium, High-tech, Hackathon-ready" aesthetic in all frontend additions.

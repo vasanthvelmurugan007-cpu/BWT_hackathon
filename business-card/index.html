@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S.R. Electricals — Business Card</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #c8c8c8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 60px 20px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* === CARD CONTAINER === */
+        .card {
+            width: 336px;
+            /* 3.5 inches at 96dpi */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            position: relative;
+        }
+
+        /* === FRONT CARD === */
+        .front {
+            background: #1a1f2e;
+            padding: 24px 22px 22px;
+            height: 192px;
+            /* 2 inches */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Big lightning bolt watermark */
+        .front::after {
+            content: '⚡';
+            position: absolute;
+            right: -10px;
+            top: 10px;
+            font-size: 160px;
+            opacity: 0.08;
+            color: #f5c518;
+            pointer-events: none;
+            line-height: 1;
+        }
+
+        /* === LOGO ROW === */
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #f5c518;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            color: #fff;
+            font-size: 17px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            color: #f5c518;
+            font-size: 8.5px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+            opacity: 0.9;
+        }
+
+        /* === DIVIDER === */
+        .divider {
+            height: 1.5px;
+            background: linear-gradient(to right, #f5c518, transparent);
+            margin-bottom: 11px;
+        }
+
+        /* === NAME SECTION === */
+        .name-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .name-bolt {
+            color: #f5c518;
+            font-size: 14px;
+            margin-top: 1px;
+        }
+
+        .name {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .role {
+            color: #f5c518;
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* === INFO ROWS === */
+        .info-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .left-bar {
+            width: 2px;
+            background: #f5c518;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .info-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-line {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .info-icon {
+            font-size: 11px;
+            width: 14px;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            color: #fff;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .info-text.gold {
+            color: #f5c518;
+            font-weight: 600;
+        }
+
+        .info-text.phone {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* === BACK CARD === */
+        .back {
+            background: #1a1f2e;
+            padding: 18px 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .back::after {
+            content: '⚡';
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 160px;
+            opacity: 0.08;
+            color: #f5c518;
+            pointer-events: none;
+            line-height: 1;
+        }
+
+        /* === SERVICES === */
+        .services {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-icon {
+            font-size: 14px;
+            width: 20px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .service-text {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* === BOTTOM DIVIDER === */
+        .bottom-divider {
+            height: 2px;
+            background: #f5c518;
+            margin-bottom: 12px;
+        }
+
+        /* === BACK ADDRESS === */
+        .back-license {
+            color: #f5c518;
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .back-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .back-info-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .back-icon {
+            font-size: 11px;
+            margin-top: 1px;
+            flex-shrink: 0;
+            width: 14px;
+            text-align: center;
+        }
+
+        .back-text {
+            color: #fff;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .back-text strong {
+            font-weight: 700;
+        }
+
+        .back-text.phone {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* === PRINT / CANVA GUIDE NOTE === */
+        .note {
+            background: #1a1f2e;
+            color: #f5c518;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            padding: 14px 24px;
+            border-radius: 8px;
+            max-width: 336px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .note strong {
+            color: #fff;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* === PRINT MEDIA === */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .note {
+                display: none;
+            }
+
+            .card {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════ FRONT CARD ══════════ -->
+    <div class="card">
+        <div class="front">
+
+            <!-- Logo Row -->
+            <div class="logo-row">
+                <div class="logo-icon">⚡</div>
+                <div class="logo-text">S.R.<br>Electricals</div>
+            </div>
+
+            <!-- Tagline -->
+            <div class="tagline">⚡ Powering Your World with Safety &amp; Trust ⚡</div>
+
+            <!-- Name -->
+            <div class="name-section">
+                <span class="name-bolt">⚡</span>
+                <div>
+                    <div class="name">S. Velmurugan</div>
+                    <div class="role">Proprietor</div>
+                </div>
+            </div>
+
+            <!-- Info with left bar -->
+            <div class="info-area">
+                <div class="left-bar"></div>
+                <div class="info-rows">
+                    <div class="info-line">
+                        <span class="info-icon">🔧</span>
+                        <span class="info-text">Govt. Licensed Class - 1</span>
+                    </div>
+                    <div class="info-line">
+                        <span class="info-icon"></span>
+                        <span class="info-text gold">Electrical Contractors &amp; Engineers</span>
+                    </div>
+                    <div class="info-line" style="margin-top:4px">
+                        <span class="info-icon">📞</span>
+                        <span class="info-text phone">89712 18059</span>
+                    </div>
+                    <div class="info-line" style="margin-top:2px">
+                        <span class="info-icon">📍</span>
+                        <span class="info-text" style="line-height:1.5">No. 265, 1st Main, 2nd Cross,<br>H.M. Nayak
+                            Road, Jai Maruthi Nagar,<br>Bangalore - 560 096</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════ BACK CARD ══════════ -->
+    <div class="card">
+        <div class="back">
+
+            <!-- Services List -->
+            <div class="services">
+                <div class="service-item">
+                    <span class="service-icon">🔌</span>
+                    <span class="service-text">House Wiring</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-icon">💡</span>
+                    <span class="service-text">Electrical Repairs</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-icon">🏠</span>
+                    <span class="service-text">Installation &amp; Maintenance</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-icon">🧰</span>
+                    <span class="service-text">All Electrical Materials Available</span>
+                </div>
+            </div>
+
+            <!-- Gold Divider -->
+            <div class="bottom-divider"></div>
+
+            <!-- License Tag -->
+            <div class="back-license">Govt. Licensed Class - 1 Electrical Contractors &amp; Engineers</div>
+
+            <!-- Address -->
+            <div class="back-info">
+                <div class="back-info-line">
+                    <span class="back-icon">📍</span>
+                    <div class="back-text">
+                        No. 265, <strong>1st Main, 2nd Cross,</strong><br>
+                        H.M. Nayak Road, Jai Maruthi Nagar,<br>
+                        Bangalore - <strong>560 096</strong>
+                    </div>
+                </div>
+                <div class="back-info-line" style="margin-top:4px">
+                    <span class="back-icon">📞</span>
+                    <div class="back-text phone">89712 18059</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Canva Guide Note -->
+    <div class="note">
+        <strong>🎨 To use in Canva:</strong>
+        Take a screenshot of this card → Upload to Canva → Use as a design reference.<br>
+        Or print directly from this page (Ctrl+P → Save as PDF).
+    </div>
+
+</body>
+
+</html>

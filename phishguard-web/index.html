@@ -57,6 +57,10 @@
                 <div id="page-title" class="page-title">Dashboard</div>
             </div>
             <div class="topbar-right">
+                <div class="threat-level" id="c2-status" style="margin-right: 15px;">
+                    <span class="pulse" id="c2-dot" style="background:#ef4444"></span> <span id="c2-text">C2
+                        Offline</span>
+                </div>
                 <div class="threat-level" id="threat-level">
                     <span class="pulse"></span> Scanning...
                 </div>
@@ -203,7 +207,8 @@
                         <div class="imei-tracker-card"
                             style="background: rgba(30,41,59,0.5); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
                             <h3 style="margin-top:0; color: #60a5fa; display:flex; align-items:center; gap:0.5rem;">
-                                <span style="font-size:1.2rem;">📡</span> Live IMEI Telemetry Tracking</h3>
+                                <span style="font-size:1.2rem;">📡</span> Live IMEI Telemetry Tracking
+                            </h3>
                             <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Enter your stolen
                                 device's 15-digit IMEI number to connect to the AntiGravityCore UDP Socket.</p>
                             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">

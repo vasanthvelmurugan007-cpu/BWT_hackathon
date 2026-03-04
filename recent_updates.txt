@@ -1,0 +1,61 @@
+PhishGuard AI — Recent Updates Summary
+
+==================================================
+Session 1 (Mar 3, 2026): Precision Location Tracking
+Focus: Android Core + Backend accuracy improvements
+==================================================
+
+Android Core (android-core/)
+--------------------------------------------------
+* Anti-Stale Data Filter: Rejects GPS readings older than a threshold; enforces `horizontalAccuracy < threshold` to discard noisy readings.
+* Kalman Filter: Integrated a Kalman filter to smooth out GPS noise and provide more accurate real-time position estimates.
+* High-Frequency Polling: Location update interval set to 500ms for maximum tracking resolution during movement.
+
+
+==================================================
+Session 2 (Mar 4, 2026): WebSocket C2 Wiring + Full Module Integration
+Focus: Frontend app.js, Backend server.js — End-to-End wiring
+==================================================
+
+Frontend (phishguard-web/app.js)
+--------------------------------------------------
+1. Global WebSocket Connection (connectC2WebSocket)
+   - Connects to ws://localhost:8080 on startup.
+   - Auto-reconnect with exponential backoff (starts at 1s, caps at 30s).
+   - Live C2 status indicator in the header: green when connected, yellow when reconnecting.
+2. INIT message handler
+   - Populates c2Devices map with device data from server.
+   - Updates scanCount and blockedCount stats on the dashboard.
+3. LOCATION_UPDATE / TELEMETRY message handler
+   - Handles both TELEMETRY, LOCATION_UPDATE, and telemetry (legacy) message types.
+   - Updates map position for the actively tracked IMEI.
+   - Appends timestamped log entries to the telemetry log area.
+   - Updates the battery display in real time.
+4. startImeiTelemetry() — IMEI-based live tracking
+   - Sends SUBSCRIBE_IMEI + legacy subscribe action over WebSocket.
+   - Toggle button (CONNECT <-> DISCONNECT).
+   - Loads initial cached state from c2Devices map immediately if available.
+   - Graceful error display if the WebSocket is disconnected.
+5. Snap-to-Road (OSRM)
+   - fetchSnappedCoordinates() calls the free OSRM API to snap GPS coordinates to the nearest road.
+   - Smoothly lerp-animates the map marker with requestAnimationFrame for fluid movement.
+6. All 7 Modules fully wired:
+   - Phishing Detector (text scan, Hindi toggle, CERT-In report)
+   - Stolen Phone Tracking + FIR download
+   - Deepfake Guard (drag-and-drop image analysis, blur on high risk)
+   - Financial Fraud & UPI ID checker
+   - SOS & Safety (contacts, location-aware alert)
+   - Dashboard stats (live scan/blocked counts)
+   - Activity Log (live feed of recent events)
+
+Backend (phishguard-backend/server.js)
+--------------------------------------------------
+* WebSocket Server (port 8080): Sends INIT message on connect with all devices + stats.
+* SUBSCRIBE_IMEI handler: Returns immediate telemetry for a known device.
+* Legacy subscribe action: Backwards-compatible format support.
+* Auto-Simulator: Drifts demo device 351756051523999 around Bengaluru every 500ms, broadcasting both TELEMETRY and legacy telemetry formats.
+* REST API (port 3000): /api/stats, /api/device/:imei, /api/scan/phishing, /api/scan/upi, /api/simulate/location, /api/fir/generate.
+* UDP server (port 8883): Legacy binary packet support retained.
+
+--------------------------------------------------
+TL;DR: The two most recent sessions added precision GPS tracking (Kalman filter + stale rejection) to the Android core, and fully wired up the frontend WebSocket connection with live C2 status indicators, IMEI-based live tracking, snap-to-road, and all 7 app modules working end-to-end with the backend. The project is now demo-ready for the hackathon!

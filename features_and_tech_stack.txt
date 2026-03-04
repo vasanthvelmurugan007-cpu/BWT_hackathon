@@ -1,0 +1,78 @@
+PhishGuard AI - Exhaustive Features & Technology Stack
+
+--------------------------------------------------------------------------------
+💻 Technology Stack (What we have used)
+--------------------------------------------------------------------------------
+
+1. Web Dashboard (/phishguard-web)
+- Core Languages: HTML5, CSS3, Vanilla JavaScript (ES6+).
+- Mapping UI: Leaflet.js for rendering the interactive, real-time map.
+- Networking: WebSockets (Native JS) to connect to the backend server and stream live coordinates without long-polling.
+- Styling: Custom CSS with CSS Variables for a responsive, dark-mode, "glassmorphic" cybersecurity aesthetic.
+
+2. Command & Control Backend (/phishguard-backend)
+- Runtime Framework: Node.js (Standard library).
+- Networking Stack:
+  - UDP Sockets (dgram module): To rapidly receive lightweight, low-latency telemetry packets from the Android devices.
+  - WebSockets (ws library): To instantly push the parsed location data from the C2 server to the Web Dashboard.
+
+3. Sentinel Android Core Simulator (/android-core)
+- Language: Java (Android SDK structure).
+- Architecture & APIs used:
+  - Android Services: Background Services to keep the telemetry running.
+  - Broadcast Receivers: Specifically BootReceiver.java to restart tracking instantly when the phone is booted.
+  - Device Administration API: (AntiGravityDeviceAdmin.java) to make the core app almost impossible to uninstall.
+  - Networking: Native Java UDP Sockets (MqttBurstClient.java acting as a UDP telemetry burster).
+  - Location Management: Simulating advanced location callbacks (StealthLocationEngine.java).
+
+4. Pitch Deck Application (/pitch_deck)
+- Framework: React 19
+- Build Tool: Vite (for blazingly fast local development).
+- Styling: Modern, component-based CSS.
+
+--------------------------------------------------------------------------------
+🚀 Exhaustive Features List (What we have built)
+--------------------------------------------------------------------------------
+
+🛡️ 1. Phishing & Scam Detector Module (Web)
+- Multi-format Phishing Analysis: Capable of scanning SMS text, raw URLs, and Email strings.
+- Keyword & Pattern Heuristics: Detects urgency triggers, shortened URLs, Bank Name spoofing (e.g., SBI, HDFC), KYC scams, and OTP requests.
+- Bilingual Detection: Tracks and identifies scam terminology in both English and Hindi text.
+
+📍 2. Stolen Phone & Telemetry Module (Web & Backend & Android)
+- Live UDP Telemetry Streaming: Receives live movement data directly pushed from the Android phone to the web map every 500ms.
+- Live IMEI Tracker: Users can input a 15-digit IMEI to instantly link the dashboard to a live stolen device.
+- Last Update & Battery Sync: The dashboard displays real-time battery stats and timestamp updates from the phone.
+- 1-Click Auto-FIR Generation: Users can click "Generate FIR PDF", fill in basic details, and the system automatically outputs an official-looking FIR document containing the phone's last known precise coordinates and IMEI.
+
+🕵️‍♂️ 3. Sentinel Android "Un-wipeable" Core (Android)
+- Stealth Location Engine: Polls location at extremely rapid intervals (500ms).
+- Anti-Stale Filter: Automatically rejects location coordinates that are too old or have poor horizontal accuracy.
+- Kalman Filter: Mathematically smooths out GPS noise to prevent erratic jumping on the map.
+- Fake Power-Off Controller (FakePowerOffController.java): If a thief tries to turn off the phone, this visually simulates a complete shutdown (black screen, offline logos) while actually keeping the phone on and tracking.
+- Power Menu Interceptor (PowerMenuInterceptor.java): Hijacks the long-press power button action to prevent the thief from accessing the real reset menu.
+- Boot Persistence: Automatically resumes background network tracking the exact second the device OS boots up.
+
+💳 4. Financial Fraud & UPI Protection (Web)
+- UPI SMS Parser: Reads text messages to detect malicious "Collect Requests" or unexpected debits.
+- SIM-Swap Detection: Identifies indicators of a SIM-swap attack in progress.
+- Instant Kill-Switch UI: A dedicated big red button feature to "Freeze all linked UPI IDs and bank accounts".
+- Quick UPI ID Look-up: Allows users to paste a UPI ID (e.g., scam@ybl) to instantly check its trust rating.
+
+🔍 5. Deepfake & Image Abuse Guard (Web)
+- Drag & Drop UI: Simple upload zone for users to drag images into the application.
+- Image Pre-fetching: Previews the image before analysis.
+- Multi-Threat Scanning UI: Interface mocks the detection of:
+  - Deepfakes: Face swaps and AI-generated anomalies.
+  - Morphing: General photo manipulation/editing.
+  - NSFW Guard: Alerting structural presence of inappropriate or explicit modifications.
+
+🚨 6. SOS & Women's Safety (Web)
+- Panic Button: A massive SOS button designed to be held for 3 seconds or quickly tapped in an emergency.
+- Emergency Contact Management: UI to quickly add or remove trusted contacts.
+- National Helplines Directory: An interactive sidebar containing all immediate Indian national helpline numbers (Police 100, Ambulance 102, Cyber Crime 1930, etc.).
+
+📊 7. National Cyber Stats & Dashboard UI (Web)
+- Executive Dashboard Metrics: Live counters showing "Scans Today", "Threats Blocked", and current "Accuracy Rate".
+- National Cyber Stats Widget: Contextual widget showing real Indian cyber statistics (UPI fraud cases, CERT-In incidents, etc.) to immediately ground the application in real-world stakes.
+- Terminal Interface/UI Aesthetics: Built with a glowing, pulse-animated "Shield Active" tracker that looks highly professional and technically advanced to stand out in a hackathon pitch.
